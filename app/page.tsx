@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NavBar } from "@/components/ui/tubelight-navbar"
 import { Leaderboard } from "@/components/leaderboard"
+import { Footer7 } from "@/components/ui/footer-7"
 import {
   Brain,
   Upload,
@@ -626,114 +627,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background border-t border-border py-12 px-4">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">BrainBuddy</span>
-              </div>
-              <p className="text-muted-foreground mb-4">Making learning feel like play for students under 15.</p>
-              <div className="flex space-x-4">
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                  <span className="text-sm">f</span>
-                </div>
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                  <span className="text-sm">t</span>
-                </div>
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                  <span className="text-sm">i</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Leaderboard
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Demo
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    API
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Parent Guide
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Teacher Resources
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    COPPA Compliance
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    GDPR-K
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 BrainBuddy. All rights reserved. Made with ❤️ for young learners.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer7 />
     </div>
   )
 }
