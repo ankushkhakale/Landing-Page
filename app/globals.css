@@ -248,15 +248,84 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Loading spinner */
-@keyframes spin {
+/* Custom Loader */
+.loader {
+  width: 100px;
+  height: 100px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border-top: 5px solid #8b5cf6; /* Purple */
+  position: relative;
+  animation: load 2s linear infinite;
+}
+
+.loader::before,.loader::after {
+  content: '';
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.loader::before {
+  border-top: 5px solid #ec4899; /* Pink */
+  transform: rotate(120deg);
+}
+
+.loader::after {
+  border-top: 5px solid #6366f1; /* Indigo */
+  transform: rotate(240deg);
+}
+
+.loader span {
+  position: absolute;
+  font-size: small;
+  width: 100px;
+  height: 100px;
+  color: hsl(var(--foreground));
+  text-align: center;
+  line-height: 100px;
+  animation: a2 2s linear infinite;
+}
+
+@keyframes load {
   to {
     transform: rotate(360deg);
   }
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
+@keyframes a2 {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Small loader variant for buttons */
+.loader-small {
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #8b5cf6;
+}
+
+.loader-small::before,
+.loader-small::after {
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #ec4899;
+}
+
+.loader-small::after {
+  border-top: 2px solid #6366f1;
+}
+
+.loader-small span {
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  font-size: 8px;
 }
 
 /* Notification badge pulse */

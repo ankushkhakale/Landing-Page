@@ -153,7 +153,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="userType">I am a...</Label>
+                <Label htmlFor="userType">Select Your Role</Label>
                 <Select value={formData.userType} onValueChange={(value) => handleInputChange("userType", value)}>
                   <SelectTrigger className="border-purple-200 focus:border-purple-500">
                     <SelectValue placeholder="Select your role" />
@@ -279,7 +279,9 @@ export default function SignupPage() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <div className="loader-small mr-2">
+                      <span></span>
+                    </div>
                     Creating Account...
                   </>
                 ) : (

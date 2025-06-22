@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Brain, Send, Loader2 } from "lucide-react"
+import { Brain, Send } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
 interface Message {
@@ -170,7 +170,9 @@ export function AIChat() {
               </Avatar>
               <div className="bg-blue-50 rounded-2xl p-4">
                 <div className="flex items-center space-x-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                  <div className="loader-small">
+                    <span></span>
+                  </div>
                   <span className="text-sm text-gray-600">BrainBuddy is thinking...</span>
                 </div>
               </div>
@@ -197,7 +199,13 @@ export function AIChat() {
               disabled={!input.trim() || isLoading}
               className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 rounded-2xl"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {isLoading ? (
+                <div className="loader-small">
+                  <span></span>
+                </div>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>

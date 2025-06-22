@@ -160,7 +160,9 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
                 disabled={uploading}
               >
                 {uploading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="loader-small">
+                    <span></span>
+                  </div>
                 ) : (
                   <Camera className="w-4 h-4" />
                 )}
@@ -196,7 +198,9 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                 >
                   {loading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="loader-small mr-2">
+                      <span></span>
+                    </div>
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
