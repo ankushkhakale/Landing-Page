@@ -15,7 +15,7 @@ interface Footer7Props {
   }>;
   description?: string;
   socialLinks?: Array<{
-    icon: React.ReactElement;
+    icon: any;
     href: string;
     label: string;
   }>;
@@ -57,10 +57,10 @@ const defaultSections = [
 ];
 
 const defaultSocialLinks = [
-  { icon: <FaInstagram className='size-5' />, href: '#', label: 'Instagram' },
-  { icon: <FaFacebook className='size-5' />, href: '#', label: 'Facebook' },
-  { icon: <FaTwitter className='size-5' />, href: '#', label: 'Twitter' },
-  { icon: <FaLinkedin className='size-5' />, href: '#', label: 'LinkedIn' },
+  { icon: FaInstagram, href: '#', label: 'Instagram' },
+  { icon: FaFacebook, href: '#', label: 'Facebook' },
+  { icon: FaTwitter, href: '#', label: 'Twitter' },
+  { icon: FaLinkedin, href: '#', label: 'LinkedIn' },
 ];
 
 const defaultLegalLinks = [
@@ -76,13 +76,13 @@ export const Footer7 = ({
     title: 'BrainBuddy',
   },
   sections = defaultSections,
-  description = 'Making learning feel like play for students under 15. AI-powered education that transforms boring study sessions into exciting adventures.',
+  description = 'Making learning feel like play for every student. AI-powered education that transforms boring study sessions into exciting adventures.',
   socialLinks = defaultSocialLinks,
-  copyright = ' 2024 BrainBuddy. All rights reserved. Made with  for young learners.',
+  copyright = '© 2024 BrainBuddy. All rights reserved. Made with ❤️ for young learners.',
   legalLinks = defaultLegalLinks,
 }: Footer7Props) => {
   return (
-    <section className='py-32 bg-background border-t border-border'>
+    <section className='pt-16 pb-0 bg-background border-t border-border'>
       <div className='container mx-auto px-4'>
         <div className='flex w-full flex-col justify-between gap-10 lg:flex-row lg:items-start lg:text-left'>
           <div className='flex w-full flex-col justify-between gap-6 lg:items-start'>
@@ -101,13 +101,16 @@ export const Footer7 = ({
               {description}
             </p>
             <ul className='flex items-center space-x-6 text-muted-foreground'>
-              {socialLinks.map((social, idx) => (
-                <li key={idx} className='font-medium hover:text-primary transition-colors'>
-                  <a href={social.href} aria-label={social.label}>
-                    {social.icon}
-                  </a>
-                </li>
-              ))}
+              {socialLinks.map((social, idx) => {
+                const IconComponent = social.icon;
+                return (
+                  <li key={idx} className='font-medium hover:text-primary transition-colors'>
+                    <a href={social.href} aria-label={social.label}>
+                      <IconComponent className='size-5' />
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           <div className='grid w-full gap-6 md:grid-cols-3 lg:gap-20'>
