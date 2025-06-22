@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Trophy, Crown, Medal, Flame, Zap, Star, Rocket } from "lucide-react"
+import { Crown } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
 import { useAuth } from "@/contexts/auth-context"
-import GradientText from "./ui/GradientText"
-import { Button } from "./ui/button"
+import GradientText from "@/components/ui/GradientText"
 import { useRouter } from "next/navigation"
-import { AnimatedCompetitionButton } from "./ui/AnimatedCompetitionButton"
+import { AnimatedCompetitionButton } from "@/components/ui/AnimatedCompetitionButton"
 
 interface LeaderboardUser {
   user_id: string
@@ -23,18 +21,9 @@ interface LeaderboardUser {
 
 export function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
-  const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const { user } = useAuth()
   const router = useRouter()
-
-  const handleJoinCompetition = () => {
-    if (user) {
-      router.push("/dashboard")
-    } else {
-      router.push("/signup")
-    }
-  }
 
   useEffect(() => {
     fetchLeaderboard()
@@ -56,8 +45,6 @@ export function Leaderboard() {
       setLeaderboard(data || [])
     } catch (error) {
       console.error("Error:", error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -102,6 +89,7 @@ export function Leaderboard() {
       case 1: return "from-yellow-400 to-amber-500";
       case 2: return "from-gray-300 to-gray-400";
       case 3: return "from-amber-600 to-orange-700";
+      default: return "from-purple-500 to-pink-500";
     }
   }
 
