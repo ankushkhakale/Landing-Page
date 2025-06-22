@@ -294,7 +294,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+          <div className="loader">
+            <span>Loading...</span>
+          </div>
           <p className="text-purple-600 font-medium">Loading your learning adventure...</p>
         </div>
       </div>
@@ -415,7 +417,7 @@ export default function DashboardPage() {
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 🎉
+                Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 
               </h1>
               <p className="text-xl text-purple-100 mb-6">Ready to continue your learning adventure?</p>
 

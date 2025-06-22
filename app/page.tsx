@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NavBar } from "@/components/ui/tubelight-navbar"
 import { Leaderboard } from "@/components/leaderboard"
-import { Footer } from "@/components/footer"
+import { Footer7 } from "@/components/ui/footer-7"
 import { EnhancedFeatureCard } from "@/components/ui/enhanced-feature-card"
 import GradientText from "@/components/ui/GradientText"
 import { EmpowerSection } from "@/components/ui/EmpowerSection"
@@ -396,7 +396,7 @@ export default function Home() {
             <Leaderboard />
         </div>
         
-        <Footer />
+        <Footer7 />
       </main>
     </div>
   )
