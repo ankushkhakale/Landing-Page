@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Brain, Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
+import { Brain, Eye, EyeOff, CheckCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function SignupPage() {
@@ -90,7 +90,9 @@ export default function SignupPage() {
             <p className="text-gray-600 mb-4">
               Your account has been created successfully. You'll be redirected to your dashboard shortly.
             </p>
-            <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto"></div>
+            <div className="loader-small mx-auto">
+              <span></span>
+            </div>
           </CardContent>
         </Card>
       </div>

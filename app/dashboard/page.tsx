@@ -417,7 +417,7 @@ export default function DashboardPage() {
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 🎉
+                Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 
               </h1>
               <p className="text-xl text-purple-100 mb-6">Ready to continue your learning adventure?</p>
 
