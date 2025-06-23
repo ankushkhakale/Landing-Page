@@ -30,6 +30,7 @@ import {
   Home,
   Info,
   Crown,
+  Smile,
 } from "lucide-react"
 
 import { useAuth } from "@/contexts/auth-context"
@@ -71,7 +72,7 @@ export default function LandingPage() {
       onClick: () => scrollToSection("features"),
     },
     {
-      name: "How It Works",
+      name: "Working",
       url: "#how-it-works",
       icon: Info,
       onClick: () => scrollToSection("how-it-works"),
@@ -97,6 +98,15 @@ export default function LandingPage() {
 
   const rightContent = (
     <div className="flex items-center space-x-4">
+      <Button
+        variant="outline"
+        className="flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
+        onClick={() => router.push("/mood")}
+        title="Open Mood Tracker"
+      >
+        <Smile className="w-5 h-5" />
+        <span className="hidden md:inline">Mood Tracker</span>
+      </Button>
       <div className="hidden md:block">
         <ThemeToggle />
       </div>

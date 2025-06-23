@@ -25,11 +25,11 @@ import {
   Flame,
   Crown,
   PlayCircle,
+  Smile,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase-client"
 import { FileUpload } from "@/components/file-upload"
-import { AIChat } from "@/components/ai-chat"
 import { QuizPlayerEnhanced } from "@/components/quiz-player-enhanced"
 import { AchievementSystem } from "@/components/achievement-system"
 import { ProgressTracker } from "@/components/progress-tracker"
@@ -37,6 +37,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationSystem } from "@/components/notification-system"
 import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
+import { AIChatBox } from "@/components/ui/ai-prompt-box"
 
 interface UserProgress {
   xp_points: number
@@ -375,6 +376,17 @@ export default function DashboardPage() {
                 <span className={`text-sm ${streakDays > 0 ? "text-orange-600" : "text-gray-500"}`}>day streak</span>
               </div>
 
+              {/* Mood Tracker Button */}
+              <Button
+                variant="outline"
+                className="hidden md:flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
+                onClick={() => router.push("/mood")}
+                title="Open Mood Tracker"
+              >
+                <Smile className="w-5 h-5" />
+                <span className="hidden md:inline">Mood Tracker</span>
+              </Button>
+
               {/* Level Badge */}
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm font-bold">
                 <Crown className="w-4 h-4 mr-1" />
@@ -699,7 +711,7 @@ export default function DashboardPage() {
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="space-y-6">
-            <AIChat />
+            <AIChatBox user={user} />
           </TabsContent>
 
           {/* Profile Tab */}
