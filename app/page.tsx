@@ -154,22 +154,6 @@ export default function Home() {
                   {user ? "Go to Dashboard" : "Start Learning Now"}
                 </Button>
               </div>
-              <div className="pt-8">
-                <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-purple-500" />
-                    <span>10,000+ Happy Students</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span>4.9/5 Parent Rating</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-green-500" />
-                    <span>100% Safe & Secure</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -178,6 +162,14 @@ export default function Home() {
           <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
         </section>
 
+        <EmpowerSection />
+        
+        <HowItWorksSection />
+        
+        <div id="leaderboard" className="py-12 md:py-24 lg:py-32">
+            <Leaderboard />
+        </div>
+        
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
             <div className="space-y-3">
@@ -185,7 +177,7 @@ export default function Home() {
                 colors={["#ffaa40", "#9c40ff", "#ffaa40"]}
                 className="text-4xl md:text-5xl font-bold"
               >
-                Kids Obsessed ? Yep, it's BrainBuddy
+                Why Kids Love BrainBuddy
               </GradientText>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 We've packed everything your child needs to fall in love with learning
@@ -387,14 +379,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <EmpowerSection />
-        
-        <HowItWorksSection />
-        
-        <div id="leaderboard" className="py-12 md:py-24 lg:py-32">
-            <Leaderboard />
-        </div>
         
         <Footer7 />
       </main>

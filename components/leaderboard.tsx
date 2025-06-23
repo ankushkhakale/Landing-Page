@@ -19,7 +19,13 @@ interface LeaderboardUser {
   rank_position: number
 }
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  limit?: number
+  showCurrentUser?: boolean
+  variant?: string
+}
+
+export function Leaderboard({ limit = 10, showCurrentUser, variant }: LeaderboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
   const supabase = createClient()
   const { user } = useAuth()
@@ -35,7 +41,7 @@ export function Leaderboard() {
         .from("leaderboards")
         .select("user_id, username, avatar_url, total_xp, rank_position")
         .order("rank_position", { ascending: true })
-        .limit(10)
+        .limit(limit)
 
       if (error) {
         console.error("Error fetching leaderboard:", error)
