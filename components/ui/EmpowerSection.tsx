@@ -5,113 +5,102 @@ import { Card } from "@/components/ui/card"
 import { Sparkles, Lightbulb, BrainCircuit } from "lucide-react"
 import GradientText from "./GradientText"
 import { motion } from "framer-motion"
+import CardSwap, { Card as SwapCard } from "@/components/ui/CardSwap"
 
 export function EmpowerSection() {
   const features = [
     {
       icon: Sparkles,
-      title: "Boosts Confidence",
+      title: "Ignites Unstoppable Confidence",
       description:
-        "Personalized challenges and positive reinforcement help your child build self-esteem and a 'can-do' attitude towards learning.",
+        "Personalized quests and uplifting feedback help your child discover their strengths and celebrate every win—big or small—building a foundation of self-belief that lasts a lifetime.",
       iconColor: "text-purple-400",
-      bgColor: "bg-purple-950/20",
     },
     {
       icon: Lightbulb,
-      title: "Sparks Curiosity",
+      title: "Turns Curiosity into Discovery",
       description:
-        "Interactive lessons and fun explorations turn learning into a game, encouraging your child to ask questions and discover new interests.",
+        "Interactive journeys transform every 'why?' into a 'wow!'—fueling your child's natural wonder with hands-on challenges, creative experiments, and stories that spark a lifelong love of learning.",
       iconColor: "text-blue-400",
-      bgColor: "bg-blue-950/20",
     },
     {
       icon: BrainCircuit,
-      title: "Develops Critical Skills",
+      title: "Cultivates Future-Ready Skills",
       description:
-        "Our AI-powered activities focus on problem-solving and creative thinking, preparing your child for future success.",
+        "From creative problem-solving to teamwork and critical thinking, BrainBuddy's AI-powered adventures equip your child with the essential skills to thrive in a fast-changing world.",
       iconColor: "text-pink-400",
-      bgColor: "bg-pink-950/20",
+    },
+    {
+      icon: require("lucide-react").Heart,
+      title: "Nurtures Emotional Intelligence",
+      description:
+        "BrainBuddy helps children recognize and manage their emotions, fostering empathy, resilience, and a positive mindset for lifelong well-being.",
+      iconColor: "text-rose-400",
+    },
+    {
+      icon: require("lucide-react").BookOpen,
+      title: "Encourages Lifelong Learning",
+      description:
+        "With ever-evolving content and adaptive challenges, BrainBuddy inspires a passion for learning that grows with your child, every step of the way.",
+      iconColor: "text-emerald-400",
     },
   ]
-
-  function FlipCard({ children }: { children: React.ReactNode }) {
-    const [isFlipped, setIsFlipped] = React.useState(false);
-    return (
-      <div
-        className="relative h-[340px] w-full cursor-pointer"
-        style={{ perspective: "1000px" }}
-        onMouseEnter={() => setIsFlipped(true)}
-        onMouseLeave={() => setIsFlipped(false)}
-      >
-        <motion.div
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative h-full w-full"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {/* Front Side */}
-          <div
-            className="absolute inset-0 h-full w-full"
-            style={{ backfaceVisibility: "hidden" }}
-          >
-            {children}
-          </div>
-          {/* Back Side (identical content) */}
-          <div
-            className="absolute inset-0 h-full w-full"
-            style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}
-          >
-            {children}
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">
       <div className="container px-4 md:px-6">
-        <motion.div
-          className="flex flex-col items-center justify-center space-y-4 text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            <GradientText colors={["#a855f7", "#60a5fa", "#ec4899"]}>
-              How BrainBuddy Empowers Your Child
-            </GradientText>
-          </h2>
-          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-            We go beyond grades, focusing on building confident, curious, and skilled young learners.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <FlipCard key={index}>
-              <div className="relative h-full w-full">
-                {/* Animated Gradient Border */}
-                <div className="absolute -inset-1 rounded-2xl z-0 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 blur-sm opacity-70" style={{ backgroundSize: '200% 200%', animation: 'gradientShift 4s ease-in-out infinite' }} />
-                <Card className="relative overflow-visible bg-slate-900/80 border-none backdrop-blur-sm p-6 flex flex-col items-center text-center transition-all duration-300 h-full min-h-[320px] rounded-2xl z-10 shadow-xl">
-                  <div className="absolute inset-0 pointer-events-none">
-                    <Sparkles className="absolute top-4 right-4 h-4 w-4 text-purple-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100" />
-                    <Sparkles className="absolute top-1/4 left-5 h-3 w-3 text-blue-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-200" />
-                    <Sparkles className="absolute bottom-1/3 right-8 h-5 w-5 text-pink-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-300" />
-                    <Sparkles className="absolute bottom-4 left-4 h-2 w-2 text-purple-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-400" />
-                  </div>
-                  <div
-                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 border-2 border-slate-700 ${feature.bgColor} shadow-lg`}
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 min-h-[400px]">
+          <motion.div
+            className="flex-1 flex flex-col items-center lg:items-start justify-center space-y-4 text-center lg:text-left mb-8 lg:mb-0"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.h2
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 max-w-2xl mx-auto bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent drop-shadow-lg"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.7 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            >
+              Unlock Your Child's Brilliance with BrainBuddy
+            </motion.h2>
+            <motion.p
+              className="max-w-xl mx-auto text-lg sm:text-xl md:text-2xl font-medium leading-snug bg-gradient-to-r from-blue-400 via-emerald-400 to-pink-400 bg-clip-text text-transparent drop-shadow-md"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.7 }}
+              transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
+            >
+              Empowering the next generation of thinkers, creators, and leaders—one joyful learning adventure at a time.
+            </motion.p>
+          </motion.div>
+          <div className="flex-1 relative flex justify-center items-center min-h-[400px] w-full">
+            <CardSwap width={500} height={340} cardDistance={60} verticalDistance={70} delay={5000} skewAmount={6}>
+              {features.map((feature, index) => (
+                <SwapCard key={index} customClass={
+                  `p-6 flex flex-col items-center text-center h-full min-h-[320px] rounded-2xl border border-white/10 shadow-lg shadow-blue-500/10 backdrop-blur-lg transition-transform duration-300 bg-slate-800/70 group`
+                }>
+                  {/* Animated Gradient Border */}
+                  <motion.div
+                    className="absolute -inset-1 z-0 rounded-2xl bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 blur-sm opacity-80 animate-gradient"
+                    style={{ backgroundSize: '200% 200%', animation: 'gradientShift 4s ease-in-out infinite' }}
+                    aria-hidden
+                  />
+                  <motion.div
+                    className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center mb-4 border-2 border-white/30 shadow-lg bg-white/20`}
+                    animate={{ scale: [1, 1.13, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
                   >
                     <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-50 mb-2 drop-shadow-lg">{feature.title}</h3>
-                  <p className="text-slate-400 text-sm drop-shadow-md">{feature.description}</p>
-                </Card>
-              </div>
-            </FlipCard>
-          ))}
+                  </motion.div>
+                  <h3 className="relative z-10 text-2xl font-extrabold text-white mb-2 drop-shadow-xl">{feature.title}</h3>
+                  <p className="relative z-10 text-white/90 text-base drop-shadow-lg">{feature.description}</p>
+                </SwapCard>
+              ))}
+            </CardSwap>
+          </div>
         </div>
       </div>
     </section>

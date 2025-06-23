@@ -10,7 +10,6 @@ import { Footer7 } from "@/components/ui/footer-7"
 import { EnhancedFeatureCard } from "@/components/ui/enhanced-feature-card"
 import GradientText from "@/components/ui/GradientText"
 import { EmpowerSection } from "@/components/ui/EmpowerSection"
-import { HowItWorksSection } from "@/components/ui/HowItWorksSection"
 import {
   Brain,
   Upload,
@@ -166,8 +165,6 @@ export default function Home() {
         </section>
 
         <EmpowerSection />
-        
-        <HowItWorksSection />
         
         <div id="leaderboard" className="py-12 md:py-24 lg:py-32">
             <Leaderboard />
