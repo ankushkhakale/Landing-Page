@@ -42,6 +42,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import WhyKidsLoveSection from "@/components/ui/WhyKidsLoveSection"
 
 export default function Home() {
   const { user } = useAuth()
@@ -154,6 +155,8 @@ export default function Home() {
                   {user ? "Go to Dashboard" : "Start Learning Now"}
                 </Button>
               </div>
+
+              <WhyKidsLoveSection />
             </div>
           </div>
 
