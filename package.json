@@ -50,11 +50,11 @@
     "framer-motion": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "15.3.4",
     "next-themes": "latest",
-    "react": "^18",
+    "react": "^18.0.0",
     "react-day-picker": "latest",
-    "react-dom": "^18",
+    "react-dom": "^18.0.0",
     "react-dropzone": "latest",
     "react-hook-form": "latest",
     "react-icons": "^5.5.0",
@@ -67,11 +67,11 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^18",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.0",
     "@types/react-dom": "^18",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5.0.2"
   }
 }
