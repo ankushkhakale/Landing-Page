@@ -34,6 +34,8 @@ import {
 
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import ShinyText from "@/components/ShinyText"
+import "@/components/ShinyText.css"
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
@@ -89,9 +91,7 @@ export default function LandingPage() {
       <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
         <Brain className="w-6 h-6 text-white" />
       </div>
-      <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-        BrainBuddy
-      </span>
+      <ShinyText text="BrainBuddy" className="text-2xl font-bold" />
     </div>
   )
 
@@ -115,19 +115,27 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <NavBar items={navItems} logo={logo} rightContent={rightContent} className="backdrop-blur-xl" />
+      <NavBar items={navItems} logo={logo} rightContent={rightContent} />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-4 overflow-hidden">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-pink-950/20" />
+        {/* Background Video */}
+        <video
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          src="/AI_Generated_Video_Ready_Now.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+        {/* Background Gradient Overlay Removed */}
 
         {/* Content Container */}
-        <div className="relative z-10 container mx-auto max-w-6xl">
-          <div className="text-center space-y-8">
+        <div className="relative z-20 container mx-auto max-w-6xl flex flex-col justify-center min-h-[60vh]">
+          <div className="space-y-8 max-w-2xl">
             {/* Badge */}
-            <div className="flex justify-center">
-              <Badge className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200 dark:from-purple-900/50 dark:to-pink-900/50 dark:text-purple-300 dark:border-purple-700">
+            <div className="flex justify-start">
+              <Badge className="px-4 py-2">
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Learning for Kids
               </Badge>
@@ -135,23 +143,22 @@ export default function LandingPage() {
 
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight">
-                <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight text-left">
+                <span className="bg-gradient-to-r from-pink-400 via-yellow-400 via-green-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg">
                   Learn Like You Play
                 </span>
               </h1>
             </div>
 
             {/* Subtitle */}
-            <div className="max-w-4xl mx-auto">
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting
-                adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
+            <div className="max-w-4xl">
+              <p className="text-lg sm:text-xl md:text-2xl font-normal text-white leading-relaxed text-left drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
               </p>
             </div>
 
             {/* CTA Button */}
-            <div className="pt-4">
+            <div className="pt-4 flex justify-start">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 text-xl font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
@@ -164,11 +171,7 @@ export default function LandingPage() {
 
             {/* Trust Indicators */}
             <div className="pt-8">
-              <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-purple-500" />
-                  <span>10,000+ Happy Students</span>
-                </div>
+              <div className="flex flex-wrap gap-8 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-2">
                   <Star className="w-4 h-4 text-yellow-500" />
                   <span>4.9/5 Parent Rating</span>
@@ -609,10 +612,6 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-wrap justify-center items-center gap-8 text-purple-100">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span>10,000+ Happy Students</span>
-              </div>
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5" />
                 <span>4.9/5 Parent Rating</span>
