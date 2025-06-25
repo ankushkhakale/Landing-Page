@@ -6,6 +6,7 @@ import { Sparkles, Lightbulb, BrainCircuit } from "lucide-react"
 import GradientText from "./GradientText"
 import { motion } from "framer-motion"
 import CardSwap, { Card as SwapCard } from "@/components/ui/CardSwap"
+import GlassCard from "@/components/ui/glass-card"
 
 export function EmpowerSection() {
   const features = [
@@ -105,4 +106,86 @@ export function EmpowerSection() {
       </div>
     </section>
   )
+}
+
+// Simple Steps to Learning Success Section
+export function SimpleStepsSection() {
+  const steps = [
+    {
+      step: 'Step 1',
+      icon: require('lucide-react').Upload,
+      title: "🧠✨ BrainBuddy's Magical Knowledge Cauldron ✨🧠",
+      description: "Throw anything into my cauldron—PDFs, scribbled notes, or even a photo of your dog wearing glasses (if it's 'studying'). I'll brew it into:\n\n• Sparkling summaries ⚡\n• Memory potions (a.k.a. mnemonics) 🧪\n• Essay spells ✍️\n• Quiz-tastic enchantments ❓",
+      bg: 'bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-900',
+      badge: 'bg-blue-500 text-white',
+      iconBg: 'bg-blue-700',
+    },
+    {
+      step: 'Step 2',
+      icon: require('lucide-react').Brain,
+      title: "🤖💡 BrainBuddy Reads Your Mood & Crafts Magic",
+      description: "I don't just read words—I sense your mood! Whether you're excited, bored, or need a pep talk, I'll create just-right content for you:\n\n• Emotion-aware quizzes 🎭\n• Uplifting study notes 🌈\n• Pep talk pop-ups 💬\n• Adaptive challenges that fit your vibe 🪄",
+      bg: 'bg-gradient-to-br from-fuchsia-900 via-purple-800 to-pink-900',
+      badge: 'bg-pink-500 text-white',
+      iconBg: 'bg-pink-700',
+    },
+    {
+      step: 'Step 3',
+      icon: require('lucide-react').Gamepad2,
+      title: '🚀 Turn Boring Material Into Epic Challenges',
+      description: "Ditch the flashcards—compete, conquer, and level up your knowledge with:\n\n🏆 Trivia Showdowns – Battle classmates (or yourself) in quiz duels.\n\n⏱️ Speed Runs – Beat the clock on rapid-fire questions.\n\n🔓 Unlockable Rewards – Earn badges, streaks, or even *'10 Minutes of TikTok Guilt-Free.'*\n\n🌋 Boss Fights – Tackle mega-hard questions to 'defeat' a unit.",
+      bg: 'bg-gradient-to-br from-emerald-900 via-green-800 to-cyan-900',
+      badge: 'bg-green-500 text-white',
+      iconBg: 'bg-green-700',
+    },
+    {
+      step: 'Step 4',
+      icon: require('lucide-react').Award,
+      title: '🚀 From Study Grind to Victory Lap—See Your Growth in Real Time!',
+      description: "Your brain is getting stronger—let's prove it. Track every win with:\n\n📊 Smart Analytics – See which topics you've mastered (and where you need extra XP).\n\n🏅 Achievement Unlocked! – Earn badges for streaks, high scores & lightning-fast recall.\n\n📅 Study Streaks – Keep the momentum going (don't break the chain!).\n\n🎯 Personalized Goals – Set targets, crush them, and celebrate.",
+      bg: 'bg-gradient-to-br from-yellow-900 via-orange-800 to-amber-900',
+      badge: 'bg-yellow-400 text-white',
+      iconBg: 'bg-yellow-600',
+    },
+  ];
+
+  return (
+    <section className="w-full py-16 md:py-24 lg:py-32">
+      <div className="container px-4 md:px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-2 bg-gradient-to-r from-fuchsia-400 via-pink-400 to-purple-400 bg-clip-text text-transparent drop-shadow-lg">
+            Start Your BrainBuddy Adventure
+          </h2>
+          <p className="max-w-xl mx-auto text-lg md:text-xl text-muted-foreground">
+            Ready, set, learn! Here's how to begin your BrainBuddy journey.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+          {steps.map((step, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: idx * 0.15, type: "spring", stiffness: 80 }}
+              whileHover={{
+                scale: 1.06,
+                boxShadow: "0 8px 32px 0 rgba(168,85,247,0.25), 0 0 0 4px #a855f7",
+                rotate: 2,
+              }}
+              className="transition-transform duration-300"
+            >
+              <GlassCard className="flex flex-col min-h-[340px] min-w-[320px] sm:min-w-[360px] lg:min-w-[400px] items-start">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 ${step.iconBg}`}>
+                  <step.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 drop-shadow-lg">{step.title}</h3>
+                <pre className="text-slate-200 text-base flex-1 whitespace-pre-line font-sans bg-transparent border-0 p-0 m-0">{step.description}</pre>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 } 
