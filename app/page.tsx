@@ -36,6 +36,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import ShinyText from "@/components/ShinyText"
 import "@/components/ShinyText.css"
+import { AnimatedCompetitionButton } from "@/components/ui/AnimatedCompetitionButton"
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
@@ -135,7 +136,7 @@ export default function LandingPage() {
           <div className="space-y-8 max-w-2xl">
             {/* Badge */}
             <div className="flex justify-start">
-              <Badge className="px-4 py-2">
+              <Badge className="px-4 py-2 bg-white text-blue-700 font-semibold shadow">
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Learning for Kids
               </Badge>
@@ -152,7 +153,7 @@ export default function LandingPage() {
 
             {/* Subtitle */}
             <div className="max-w-4xl">
-              <p className="text-lg sm:text-xl md:text-2xl font-normal text-white leading-relaxed text-left drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+              <p className="text-lg sm:text-xl md:text-2xl font-normal text-black leading-relaxed text-left drop-shadow-[0_2px_6px_rgba(255,255,255,0.8)]">
                 Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
               </p>
             </div>
@@ -169,19 +170,7 @@ export default function LandingPage() {
               </Button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="pt-8">
-              <div className="flex flex-wrap gap-8 text-sm text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  <span>4.9/5 Parent Rating</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-green-500" />
-                  <span>100% Safe & Secure</span>
-                </div>
-              </div>
-            </div>
+            {/* Trust indicators removed as requested */}
           </div>
         </div>
 
@@ -189,39 +178,6 @@ export default function LandingPage() {
         <div className="absolute top-20 left-10 w-20 h-20 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-800"></div>
         <div className="absolute top-40 right-10 w-20 h-20 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
         <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
-      </section>
-
-      {/* Hero Visual */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto">
-          <div className="relative max-w-4xl mx-auto">
-            <div className="bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 rounded-3xl p-8 shadow-2xl dark:from-purple-600 dark:via-blue-600 dark:to-pink-600">
-              <div className="bg-background rounded-2xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-purple-200 hover:shadow-lg transition-shadow dark:border-purple-700">
-                  <CardContent className="p-4 text-center">
-                    <Upload className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">Upload & Learn</h3>
-                    <p className="text-sm text-muted-foreground">Drop your notes, PDFs, or videos</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-blue-200 hover:shadow-lg transition-shadow dark:border-blue-700">
-                  <CardContent className="p-4 text-center">
-                    <Brain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">AI Magic</h3>
-                    <p className="text-sm text-muted-foreground">Get personalized quizzes & summaries</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-pink-200 hover:shadow-lg transition-shadow dark:border-pink-700">
-                  <CardContent className="p-4 text-center">
-                    <Trophy className="w-8 h-8 text-pink-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">Earn Rewards</h3>
-                    <p className="text-sm text-muted-foreground">Level up with XP, badges & streaks</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Features Section */}
@@ -562,23 +518,12 @@ export default function LandingPage() {
               Top Performers
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See how our amazing students are excelling! Join the leaderboard and compete with learners worldwide.
+              See who's leading the pack and climbing the ranks!
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <Leaderboard limit={10} showCurrentUser={false} variant="full" />
-          </div>
-
-          <div className="text-center mt-12">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-xl"
-              onClick={handleGetStarted}
-            >
-              <Crown className="w-5 h-5 mr-2" />
-              Join the Competition
-            </Button>
+            <Leaderboard />
           </div>
         </div>
       </section>
@@ -593,33 +538,11 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Button
-                size="lg"
-                className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4 shadow-lg"
-                onClick={handleGetStarted}
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                {user ? "Go to Dashboard" : "Start Free Trial"}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4"
-              >
-                Schedule Demo
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
+              <AnimatedCompetitionButton />
             </div>
 
             <div className="flex flex-wrap justify-center items-center gap-8 text-purple-100">
-              <div className="flex items-center space-x-2">
-                <Star className="w-5 h-5" />
-                <span>4.9/5 Parent Rating</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5" />
-                <span>100% Safe & Secure</span>
-              </div>
+              {/* Trust indicators removed as requested */}
             </div>
           </div>
         </div>
