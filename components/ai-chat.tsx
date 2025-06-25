@@ -16,6 +16,15 @@ interface Message {
   timestamp: Date
 }
 
+// Add a typing indicator component
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 ml-2">
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0s]"></span>
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+  </div>
+);
+
 export function AIChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -104,54 +113,54 @@ export function AIChat() {
   }
 
   return (
-    <Card className="border-0 shadow-xl h-[600px] flex flex-col">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-t-lg">
+    <Card className="border-0 shadow-2xl h-[600px] flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950 relative overflow-hidden min-h-0">
+      <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-t-2xl shadow-md">
         <CardTitle className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
-            <Brain className="w-6 h-6" />
+          <div className="w-12 h-12 bg-white/30 rounded-2xl flex items-center justify-center shadow-lg">
+            <Brain className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">BrainBuddy AI</h3>
+            <h3 className="text-2xl font-extrabold tracking-tight">BrainBuddy AI</h3>
             <p className="text-blue-100 text-sm">Your AI Study Companion</p>
           </div>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 p-0 flex flex-col">
+      <CardContent className="flex-1 p-0 flex flex-col min-h-0">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message) => (
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 bg-transparent scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-900 dark:scrollbar-track-blue-950">
+          {messages.map((message, idx) => (
             <div
               key={message.id}
-              className={`flex items-start space-x-3 ${
+              className={`flex items-end space-x-3 transition-all duration-300 ease-in-out ${
                 message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""
               }`}
             >
-              <Avatar className="w-8 h-8 flex-shrink-0">
+              <Avatar className="w-12 h-12 flex-shrink-0 shadow-lg">
                 <AvatarFallback
                   className={
                     message.sender === "ai"
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                      : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl"
+                      : "bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl"
                   }
                 >
                   {message.sender === "ai" ? (
-                    <Brain className="w-4 h-4" />
+                    <Brain className="w-6 h-6" />
                   ) : (
                     user?.user_metadata?.full_name?.charAt(0) || "U"
                   )}
                 </AvatarFallback>
               </Avatar>
-
               <div
-                className={`max-w-md rounded-2xl p-4 ${
+                className={`max-w-md rounded-3xl px-6 py-4 shadow-md transition-all duration-300 ease-in-out text-base font-medium ${
                   message.sender === "ai"
-                    ? "bg-blue-50 text-gray-800"
+                    ? "bg-white/80 text-gray-800 dark:bg-blue-900/80 dark:text-blue-100"
                     : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                 }`}
+                style={{ borderBottomLeftRadius: message.sender === "ai" ? 0 : undefined, borderBottomRightRadius: message.sender === "user" ? 0 : undefined }}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <p className={`text-xs mt-2 ${message.sender === "ai" ? "text-gray-500" : "text-purple-100"}`}>
+                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                <p className={`text-xs mt-2 ${message.sender === "ai" ? "text-blue-400" : "text-pink-100"}`}>
                   {message.timestamp.toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -162,19 +171,15 @@ export function AIChat() {
           ))}
 
           {isLoading && (
-            <div className="flex items-start space-x-3">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                  <Brain className="w-4 h-4" />
+            <div className="flex items-end space-x-3">
+              <Avatar className="w-12 h-12">
+                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl">
+                  <Brain className="w-6 h-6" />
                 </AvatarFallback>
               </Avatar>
-              <div className="bg-blue-50 rounded-2xl p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="loader-small">
-                    <span></span>
-                  </div>
-                  <span className="text-sm text-gray-600">BrainBuddy is thinking...</span>
-                </div>
+              <div className="bg-white/80 dark:bg-blue-900/80 rounded-3xl px-6 py-4 shadow-md flex items-center">
+                <TypingIndicator />
+                <span className="ml-3 text-blue-400 text-base font-medium">BrainBuddy is thinking...</span>
               </div>
             </div>
           )}
@@ -183,31 +188,32 @@ export function AIChat() {
         </div>
 
         {/* Input */}
-        <div className="p-6 border-t border-gray-200">
-          <div className="flex space-x-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about your studies..."
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={1}
-              disabled={isLoading}
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 rounded-2xl"
-            >
-              {isLoading ? (
-                <div className="loader-small">
-                  <span></span>
-                </div>
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
+        <div className="p-4 bg-transparent flex items-end gap-2 sticky bottom-0">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything about your studies..."
+            className="flex-1 px-5 py-3 border-2 border-blue-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/80 dark:bg-blue-950/60 text-base resize-none shadow-sm transition-all"
+            rows={1}
+            disabled={isLoading}
+            style={{ minHeight: 48, maxHeight: 120 }}
+          />
+          <Button
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 py-3 rounded-full shadow-lg text-white text-xl flex items-center justify-center transition-all duration-200"
+            style={{ minWidth: 56, minHeight: 56 }}
+            aria-label="Send message"
+          >
+            {isLoading ? (
+              <div className="loader-small">
+                <span></span>
+              </div>
+            ) : (
+              <Send className="w-6 h-6" />
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

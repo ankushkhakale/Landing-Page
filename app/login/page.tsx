@@ -60,7 +60,7 @@ export default function LoginPage() {
 
         <Card className="border-purple-200 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-800">Sign In</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-800 dark:text-white">Sign In</CardTitle>
             <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
@@ -131,28 +131,12 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 Don't have an account?{" "}
                 <Link href="/signup" className="text-purple-600 hover:text-purple-800 font-semibold hover:underline">
                   Sign up here
                 </Link>
               </p>
-            </div>
-
-            {/* Demo Accounts */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm font-semibold text-blue-800 mb-2">Demo Accounts:</p>
-              <div className="text-xs text-blue-700 space-y-1">
-                <p>
-                  <strong>Student:</strong> student@demo.com / password123
-                </p>
-                <p>
-                  <strong>Teacher:</strong> teacher@demo.com / password123
-                </p>
-                <p>
-                  <strong>Parent:</strong> parent@demo.com / password123
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>

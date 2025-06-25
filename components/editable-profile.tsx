@@ -59,7 +59,13 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
 
       setFormData((prev) => ({ ...prev, avatar_url: publicUrl }))
     } catch (error) {
-      console.error("Error uploading avatar:", error)
+      if (error instanceof Error) {
+        console.error("Error uploading avatar:", error.message, error.stack)
+      } else if (typeof error === "object" && error !== null) {
+        console.error("Error uploading avatar:", JSON.stringify(error))
+      } else {
+        console.error("Error uploading avatar:", error)
+      }
       alert("Error uploading avatar. Please try again.")
     } finally {
       setUploading(false)

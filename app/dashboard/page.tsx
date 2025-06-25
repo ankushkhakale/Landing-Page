@@ -38,6 +38,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationSystem } from "@/components/notification-system"
 import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
+import { SidebarTabs } from "@/components/ui/SidebarTabs"
 
 interface UserProgress {
   xp_points: number
@@ -64,7 +65,9 @@ export default function DashboardPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "learn" | "progress" | "achievements" | "leaderboard" | "chat" | "profile"
+  >("overview")
   const [difficulty, setDifficulty] = useState("medium")
   const [contentType, setContentType] = useState("quiz")
   const [levelUpNotification, setLevelUpNotification] = useState<{
@@ -73,6 +76,16 @@ export default function DashboardPage() {
     newLevel: number
   } | null>(null)
   const supabase = createClient()
+
+  const tabItems = [
+    { key: "overview", label: "Overview", icon: BarChart3 },
+    { key: "learn", label: "Learn", icon: BookOpen },
+    { key: "progress", label: "Progress", icon: TrendingUp },
+    { key: "achievements", label: "Achievements", icon: Award },
+    { key: "leaderboard", label: "Leaderboard", icon: Crown },
+    { key: "chat", label: "Chat", icon: MessageCircle },
+    { key: "profile", label: "Profile", icon: User },
+  ]
 
   useEffect(() => {
     if (!user) {
@@ -244,8 +257,9 @@ export default function DashboardPage() {
 
     // Refresh user data to get updated progress
     await fetchUserData()
-    setSelectedQuiz(null)
-    setActiveTab("overview")
+    // Do NOT close the quiz or reset selectedQuiz here. Let the user close it from the review/results UI.
+    // setSelectedQuiz(null)
+    // setActiveTab("overview")
   }
 
   const startQuiz = (quiz: Quiz) => {
@@ -313,7 +327,7 @@ export default function DashboardPage() {
               ← Back to Dashboard
             </Button>
           </div>
-          <QuizPlayerEnhanced quiz={selectedQuiz} onComplete={handleQuizComplete} />
+          <QuizPlayerEnhanced quiz={selectedQuiz} onComplete={handleQuizComplete} onClose={() => { setSelectedQuiz(null); setActiveTab("overview"); }} />
         </div>
       </div>
     )
@@ -327,7 +341,73 @@ export default function DashboardPage() {
   const xpNeeded = xpForNext - currentXP
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
+      {/* Navbar at the top */}
+      <header className="bg-white/40 dark:bg-[#181c2f]/70 backdrop-blur-lg border-b border-white/40 dark:border-[#23284a] sticky top-0 z-40 shadow-lg">
+        <div className="container mx-auto px-6 py-3">
+          <div className="flex items-center justify-between w-full">
+            {/* Left: Logo and Brand */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
+                  BrainBuddy
+                </span>
+                <span className="text-sm text-muted-foreground truncate">Learning Dashboard</span>
+              </div>
+            </div>
+
+            {/* Right: Badges, Theme, Notifications, User */}
+            <div className="flex items-center gap-3">
+              {/* Streak Badge */}
+              <div className="flex items-center bg-orange-50 rounded-full px-3 py-1 shadow text-orange-700 font-semibold text-sm gap-1 border border-orange-100">
+                <Flame className="w-5 h-5 text-orange-500" />
+                <span className="font-bold">{streakDays}</span>
+                <span className="text-xs">day streak</span>
+              </div>
+              {/* Level Badge */}
+              <div className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-4 py-1 shadow text-white font-bold text-sm gap-1">
+                <Crown className="w-5 h-5" />
+                Level {currentLevel}
+              </div>
+              {/* Theme Toggle */}
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+              {/* Notifications */}
+              <div className="flex items-center">
+                <NotificationSystem />
+              </div>
+              {/* User Info */}
+              <div className="flex items-center gap-3">
+                <Avatar className="w-9 h-9 border-2 border-purple-200">
+                  <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold">
+                    {user?.user_metadata?.full_name?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block min-w-0 text-right">
+                  <p className="font-semibold text-foreground truncate text-base leading-tight">{user?.user_metadata?.full_name || "Learner"}</p>
+                  <p className="text-sm text-muted-foreground truncate">{currentXP} XP</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="ml-1 p-1">
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      {/* Main dashboard content below navbar */}
+      <div className="flex flex-1 min-h-0">
+        <SidebarTabs
+          items={tabItems}
+          activeTab={activeTab}
+          onTabChange={(key: string) => setActiveTab(key as typeof activeTab)}
+        />
+        <div className="flex-1 bg-background min-h-0 overflow-auto">
       {/* Level Up Notification */}
       {levelUpNotification?.show && (
         <div className="fixed top-4 right-4 z-50 animate-bounce">
@@ -350,68 +430,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="bg-background/90 backdrop-blur-lg border-b border-purple-100 sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Brain className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  BrainBuddy
-                </h1>
-                <p className="text-sm text-muted-foreground">Learning Dashboard</p>
-              </div>
-            </div>
-
-            {/* User Info & Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Streak Counter */}
-              <div className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-100 to-red-100 px-4 py-2 rounded-full">
-                <Flame className={`w-5 h-5 ${streakDays > 0 ? "text-orange-500" : "text-gray-400"}`} />
-                <span className={`font-bold ${streakDays > 0 ? "text-orange-700" : "text-gray-500"}`}>
-                  {streakDays}
-                </span>
-                <span className={`text-sm ${streakDays > 0 ? "text-orange-600" : "text-gray-500"}`}>day streak</span>
-              </div>
-
-              {/* Level Badge */}
-              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm font-bold">
-                <Crown className="w-4 h-4 mr-1" />
-                Level {currentLevel}
-              </Badge>
-
-              {/* Theme Toggle */}
-              <ThemeToggle />
-
-              {/* Notifications */}
-              <NotificationSystem />
-
-              {/* Profile Menu */}
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10 border-2 border-purple-200">
-                  <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold">
-                    {user?.user_metadata?.full_name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="font-semibold text-foreground">{user?.user_metadata?.full_name || "Learner"}</p>
-                  <p className="text-sm text-muted-foreground">{currentXP} XP</p>
-                </div>
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
+          <div className="container mx-auto px-4 pt-4 pb-8">
+            {/* Main Dashboard Tabs */}
+            <div className="space-y-6">
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <div className="space-y-6">
         {/* Welcome Section */}
         <div className="mb-6 pt-6 pb-6">
           <div className="text-left space-y-6">
@@ -421,7 +445,6 @@ export default function DashboardPage() {
               </h1>
               <p className="text-lg text-muted-foreground">Ready to continue your learning adventure?</p>
             </div>
-
             {/* XP Progress Bar */}
             <div className="bg-muted rounded-full p-1 max-w-md">
               <div className="bg-background rounded-full px-4 py-2 flex items-center justify-between text-sm">
@@ -434,7 +457,6 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
-
             <div className="flex flex-wrap gap-4 pt-2">
               <Button
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold"
@@ -455,121 +477,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Custom Tab Buttons */}
-        <div className="mb-6">
-          <div className="flex justify-between">
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "overview" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("overview")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <BarChart3 className="w-4 h-4 mr-2 inline" />
-                Overview
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "learn" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("learn")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <BookOpen className="w-4 h-4 mr-2 inline" />
-                Learn
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "progress" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("progress")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <TrendingUp className="w-4 h-4 mr-2 inline" />
-                Progress
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "achievements" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("achievements")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <Award className="w-4 h-4 mr-2 inline" />
-                Achievements
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "leaderboard" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("leaderboard")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <Crown className="w-4 h-4 mr-2 inline" />
-                Leaderboard
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "chat" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("chat")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <MessageCircle className="w-4 h-4 mr-2 inline" />
-                Chat
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "profile" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("profile")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <User className="w-4 h-4 mr-2 inline" />
-                Profile
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Main Dashboard Tabs */}
-        <div className="space-y-6">
-          {/* Overview Tab */}
-          {activeTab === "overview" && (
-            <div className="space-y-6">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total XP Card */}
@@ -789,7 +696,7 @@ export default function DashboardPage() {
           {/* Leaderboard Tab */}
           {activeTab === "leaderboard" && (
             <div className="space-y-6">
-              <Leaderboard limit={20} showCurrentUser={true} variant="full" />
+                  <Leaderboard limit={15} showCurrentUser={true} variant="full" />
             </div>
           )}
 
@@ -806,6 +713,8 @@ export default function DashboardPage() {
               <EditableProfile onProfileUpdate={fetchUserData} />
             </div>
           )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

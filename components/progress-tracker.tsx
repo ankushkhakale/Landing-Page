@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Flame, Trophy, Target, BookOpen, TrendingUp, Calendar, Zap } from "lucide-react"
+import { Flame, Trophy, Target, BookOpen, TrendingUp, Calendar, Zap, RefreshCw, Quote } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -26,19 +26,42 @@ interface SubjectProgress {
   last_activity: string
 }
 
+async function fetchProgressQuote() {
+  try {
+    const res = await fetch("/api/generate-quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic: "progress" })
+    })
+    const data = await res.json()
+    return data.quote || "Keep going! Every step counts!";
+  } catch {
+    return "Keep going! Every step counts!";
+  }
+}
+
 export function ProgressTracker() {
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null)
   const [subjectProgress, setSubjectProgress] = useState<SubjectProgress[]>([])
   const [weeklyActivity, setWeeklyActivity] = useState<boolean[]>([])
+  const [monthlyActivity, setMonthlyActivity] = useState<boolean[]>([])
+  const [activityView, setActivityView] = useState<'weekly' | 'monthly'>('weekly')
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
   const supabase = createClient()
+  const [quote, setQuote] = useState<string>("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchProgressData()
     }
   }, [user])
+
+  useEffect(() => {
+    getNewQuote();
+    // eslint-disable-next-line
+  }, []);
 
   const fetchProgressData = async () => {
     try {
@@ -77,6 +100,10 @@ export function ProgressTracker() {
 
       const activity = generateWeeklyActivity(quizData || [])
       setWeeklyActivity(activity)
+
+      // Generate monthly activity (up to 35 days)
+      const monthActivity = generateMonthlyActivity(quizData || [])
+      setMonthlyActivity(monthActivity)
     } catch (error) {
       console.error("Error fetching progress data:", error)
     } finally {
@@ -102,6 +129,45 @@ export function ProgressTracker() {
     }
 
     return activity
+  }
+
+  const generateMonthlyActivity = (quizData: any[]) => {
+    const today = new Date()
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+    const activity: boolean[] = []
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth(), i)
+      const dateString = date.toDateString()
+      const hasActivity = quizData.some((quiz) => {
+        const quizDate = new Date(quiz.completed_at)
+        return quizDate.toDateString() === dateString
+      })
+      activity.push(hasActivity)
+    }
+    // Pad to 35 days for a 5-row grid
+    while (activity.length < 35) activity.push(false)
+    return activity
+  }
+
+  // Helper to calculate the longest and current streak in a boolean array
+  function getStreakInfo(activityArr: boolean[]) {
+    let maxStreak = 0, currentStreak = 0, tempStreak = 0, activeDays = 0
+    for (let i = 0; i < activityArr.length; i++) {
+      if (activityArr[i]) {
+        tempStreak++
+        activeDays++
+        if (tempStreak > maxStreak) maxStreak = tempStreak
+      } else {
+        tempStreak = 0
+      }
+    }
+    // Calculate current streak (ending at last day)
+    currentStreak = 0
+    for (let i = activityArr.length - 1; i >= 0; i--) {
+      if (activityArr[i]) currentStreak++
+      else break
+    }
+    return { maxStreak, currentStreak, activeDays }
   }
 
   const getXPForLevel = (level: number): number => {
@@ -169,6 +235,24 @@ export function ProgressTracker() {
     { name: "General Knowledge", icon: "🧠", color: "from-indigo-500 to-purple-500" },
   ]
 
+  // Add a color map for solid progress bar colors
+  const subjectBarColors: Record<string, string> = {
+    Mathematics: 'bg-blue-400',
+    Science: 'bg-green-400',
+    English: 'bg-purple-400',
+    History: 'bg-orange-400',
+    Geography: 'bg-teal-400',
+    'General Knowledge': 'bg-indigo-400',
+  }
+
+  const getNewQuote = async () => {
+    setQuoteLoading(true);
+    setQuote("");
+    const newQuote = await fetchProgressQuote();
+    setQuote(newQuote);
+    setQuoteLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -194,179 +278,231 @@ export function ProgressTracker() {
   const xpNeeded = xpForNext - currentXP
 
   return (
-    <div className="space-y-6">
-      {/* Level Progress */}
-      <Card className="border-0 shadow-xl bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 text-white">
-        <CardContent className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-2xl font-bold mb-2">Level {currentLevel}</h3>
-              <p className="text-purple-100">
-                {xpNeeded > 0 ? `${xpNeeded} XP to Level ${currentLevel + 1}` : "Max level reached!"}
-              </p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Level Card */}
+      <Card className="rounded-xl border border-purple-100 dark:border-purple-900 shadow bg-white/90 dark:bg-[#23223a]/80 col-span-1 flex flex-col justify-between">
+        <CardContent className="p-4 flex flex-col gap-2 items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center w-full gap-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-blue-400 dark:from-purple-700 dark:to-blue-700 rounded-xl flex items-center justify-center mb-1">
+              <Trophy className="w-6 h-6 text-white" />
             </div>
-            <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center">
-              <Trophy className="w-10 h-10" />
-            </div>
+            <h3 className="text-base font-bold">Level {currentLevel}</h3>
+            <p className="text-xs text-purple-500 dark:text-purple-200">
+              {xpNeeded > 0 ? `${xpNeeded} XP to Level ${currentLevel + 1}` : "Max level reached!"}
+            </p>
           </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>{getXPForLevel(currentLevel)} XP</span>
-              <span>{currentXP} XP</span>
-              <span>{xpForNext} XP</span>
-            </div>
-            <div className="bg-white/20 rounded-full p-1">
-              <Progress value={levelProgress} className="h-3 bg-white/30" />
-            </div>
+          <div className="flex justify-center items-center gap-4 w-full text-xs mt-2">
+            <span>{getXPForLevel(currentLevel)} XP</span>
+            <span className="font-bold text-lg text-purple-700 dark:text-purple-200">{currentXP} XP</span>
+            <span>{xpForNext} XP</span>
+          </div>
+          <div className="w-full flex justify-center mt-2">
+            <Progress value={levelProgress} className="h-2 bg-purple-100 dark:bg-purple-900 w-full max-w-[180px]" />
           </div>
         </CardContent>
       </Card>
 
-      {/* Streak Tracker */}
-      <Card className={`border-0 shadow-xl bg-gradient-to-r ${getStreakColor(streakDays)} text-white`}>
-        <CardContent className="p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-bold mb-2">Study Streak</h3>
-              <p className="text-orange-100">{getStreakMessage(streakDays)}</p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mb-2">
-                <Flame className="w-10 h-10" />
-              </div>
-              <div className="text-3xl font-bold">{streakDays}</div>
-              <div className="text-sm opacity-80">days</div>
-            </div>
+      {/* Streak Card */}
+      <Card className="rounded-xl border border-orange-100 dark:border-orange-900 shadow bg-white/90 dark:bg-[#23223a]/80 col-span-1 flex flex-col justify-between">
+        <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center w-full gap-2">
+            {streakDays > 0 ? (
+              <>
+                <div className="flex flex-col items-center justify-center">
+                  <span className="flex items-center justify-center text-2xl font-bold text-orange-500">
+                    <Flame className="w-5 h-5 mr-1" />
+                    {streakDays}
+                  </span>
+                  <span className="text-sm font-medium text-orange-700 dark:text-orange-200 mt-1">Current Streak</span>
+                </div>
+                <span className="text-xs text-orange-500 dark:text-orange-200 mt-2">{getStreakMessage(streakDays)}</span>
+              </>
+            ) : (
+              <>
+                <span className="flex items-center justify-center text-3xl font-bold text-orange-400 mb-1">
+                  <Flame className="w-8 h-8 mr-2 animate-bounce" />
+                </span>
+                <span className="text-base font-bold text-orange-700 dark:text-orange-200">Start Your Streak!</span>
+                <span className="text-xs text-orange-500 dark:text-orange-200 mt-2">Complete a quiz or study today to begin your streak! 🔥</span>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Weekly Activity */}
-      <Card className="border-0 shadow-xl">
-        <CardHeader>
+      {/* Compact Activity Card */}
+      <Card className="rounded-xl border border-blue-100 dark:border-blue-900 shadow bg-white/90 dark:bg-[#23223a]/80 col-span-2 flex flex-col justify-between min-h-[170px]">
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5 text-blue-500" />
-            <span>Weekly Activity</span>
+            <span>{activityView === 'weekly' ? 'Weekly' : 'Monthly'} Activity</span>
           </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2 mb-4">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
-              <div key={day} className="text-center">
-                <div className="text-xs text-gray-500 mb-2">{day}</div>
-                <div
-                  className={`w-8 h-8 rounded-lg ${
-                    weeklyActivity[index]
-                      ? "bg-gradient-to-r from-green-400 to-green-500"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  } transition-colors`}
-                  title={weeklyActivity[index] ? "Active" : "No activity"}
-                ></div>
-              </div>
-            ))}
+          <div className="flex gap-2 mt-2">
+            <button
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activityView === 'weekly' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
+              onClick={() => setActivityView('weekly')}
+            >
+              Weekly
+            </button>
+            <button
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activityView === 'monthly' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
+              onClick={() => setActivityView('monthly')}
+            >
+              Monthly
+            </button>
           </div>
-          <p className="text-sm text-gray-600 text-center">
-            {weeklyActivity.filter(Boolean).length} days active this week!{" "}
-            {weeklyActivity.filter(Boolean).length >= 5 ? "🎉" : "Keep going! 💪"}
-          </p>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-2 pt-0">
+          {activityView === 'weekly' ? (
+            <div className="flex flex-col items-center gap-1 w-full">
+              <div className="flex gap-1 justify-center">
+                {weeklyActivity.map((active, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-5 h-5 rounded border transition-colors duration-150
+                      ${active
+                        ? 'bg-green-400 border-green-500'
+                        : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'}
+                    `}
+                    title={active ? 'Active' : 'No activity'}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-xs">
+                <Flame className="w-4 h-4 text-orange-400" />
+                <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  {streakDays}d streak
+                </span>
+                <span className="text-blue-500 dark:text-blue-300">
+                  {weeklyActivity.filter(Boolean).length}/7 days active
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1 w-full">
+              <div className="grid grid-cols-7 grid-rows-5 gap-0.5">
+                {monthlyActivity.map((active, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-3.5 h-3.5 rounded border transition-colors duration-150
+                      ${active
+                        ? 'bg-green-400 border-green-500'
+                        : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'}
+                    `}
+                    title={active ? 'Active' : 'No activity'}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-xs">
+                <Flame className="w-4 h-4 text-orange-400" />
+                <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  {getStreakInfo(monthlyActivity).currentStreak}d streak
+                </span>
+                <span className="text-blue-500 dark:text-blue-300">
+                  {getStreakInfo(monthlyActivity).activeDays} days active
+                </span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Subject Progress */}
-      <Card className="border-0 shadow-xl">
+      {/* Progress Quote Card (Motivation) */}
+      <Card className="rounded-xl border border-pink-200 dark:border-pink-900 shadow bg-gradient-to-br from-pink-50 to-yellow-50 dark:from-pink-950 dark:to-yellow-950 flex flex-col justify-between items-center p-3 col-span-1 min-h-[100px] relative overflow-hidden">
+        <div className="absolute -top-2 -right-2 opacity-20 text-pink-300 dark:text-pink-800 text-5xl pointer-events-none select-none">
+          <Quote className="w-10 h-10" />
+        </div>
+        <div className="flex items-center w-full justify-between mb-1">
+          <span className="text-xs font-bold text-pink-500 uppercase tracking-wider">Motivation</span>
+          <button
+            onClick={getNewQuote}
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-200 hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+            disabled={quoteLoading}
+            title="Get a new quote"
+          >
+            <RefreshCw className={`w-4 h-4 ${quoteLoading ? 'animate-spin' : ''}`} />
+            New
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-center w-full">
+          {quoteLoading ? (
+            <span className="text-pink-400 animate-pulse text-xs">Loading...</span>
+          ) : (
+            <span className="text-xs font-semibold text-pink-700 dark:text-pink-200 text-center italic max-w-[100px]">“{quote}”</span>
+          )}
+        </div>
+      </Card>
+
+      {/* Study Stats Card */}
+      <Card className="rounded-xl border border-blue-100 dark:border-blue-900 shadow bg-white/90 dark:bg-[#23223a]/80 col-span-1 flex flex-row items-center justify-between px-2 py-3 gap-2 min-h-[100px]">
+        {/* Total XP */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-1">
+            <Zap className="w-4 h-4 text-blue-500" />
+          </div>
+          <div className="text-base font-bold text-blue-700 dark:text-blue-300 truncate">{currentXP}</div>
+          <div className="text-xs text-blue-500 dark:text-blue-200">Total XP</div>
+        </div>
+        {/* Quizzes Completed */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center mb-1">
+            <Trophy className="w-4 h-4 text-green-500" />
+          </div>
+          <div className="text-base font-bold text-green-700 dark:text-green-300 truncate">{userProgress?.total_quizzes_completed || 0}</div>
+          <div className="text-xs text-green-500 dark:text-green-200">Quizzes Completed</div>
+        </div>
+        {/* Study Time */}
+        <div className="flex flex-col items-center flex-1">
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-1">
+            <TrendingUp className="w-4 h-4 text-purple-500" />
+          </div>
+          <div className="text-base font-bold text-purple-700 dark:text-purple-300 truncate">{Math.floor((userProgress?.total_study_time_minutes || 0) / 60)}h</div>
+          <div className="text-xs text-purple-500 dark:text-purple-200">Study Time</div>
+        </div>
+      </Card>
+
+      {/* Subject Progress Card */}
+      <Card className="rounded-xl border border-green-100 dark:border-green-900 shadow bg-white/90 dark:bg-[#23223a]/80 col-span-2 flex flex-col justify-between">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <BookOpen className="w-5 h-5 text-green-500" />
             <span>Subject Progress</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {defaultSubjects.map((subject) => {
-            const progress = subjectProgress.find((p) => p.subject_name === subject.name)
-            const percentage = progress?.progress_percentage || 0
-            const quizCount = progress?.quizzes_completed || 0
-
-            return (
-              <div key={subject.name} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {defaultSubjects.map((subject) => {
+              const progress = subjectProgress.find((p) => p.subject_name === subject.name)
+              const percentage = progress?.progress_percentage || 0
+              const quizCount = progress?.quizzes_completed || 0
+              const accent = subject.color.replace('from-', 'border-l-4 border-').replace(' to-', ' ')
+              return (
+                <div key={subject.name} className={`flex flex-col justify-between bg-white dark:bg-[#23223a] rounded-xl shadow border ${accent} p-4 min-h-[110px] transition-all`}> 
+                  <div className="flex items-center gap-3 mb-2">
                     <span className="text-2xl">{subject.icon}</span>
-                    <div>
-                      <span className="font-medium text-gray-800">{subject.name}</span>
-                      <p className="text-xs text-gray-500">{quizCount} quizzes completed</p>
-                    </div>
+                    <span className="font-semibold text-base text-gray-800 dark:text-gray-100">{subject.name}</span>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-bold text-gray-700">{percentage}%</span>
-                    <Badge
-                      className={`ml-2 ${
-                        percentage >= 80
-                          ? "bg-green-100 text-green-700"
-                          : percentage >= 60
-                            ? "bg-yellow-100 text-yellow-700"
-                            : percentage >= 40
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {percentage >= 80
-                        ? "Excellent"
-                        : percentage >= 60
-                          ? "Good"
-                          : percentage >= 40
-                            ? "Fair"
-                            : "Beginner"}
-                    </Badge>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">{quizCount} quizzes</span>
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">{percentage}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className={`h-2 rounded-full transition-all duration-500 ${subjectBarColors[subject.name]}`} style={{ width: `${percentage}%` }}></div>
                   </div>
                 </div>
-                <div className="relative">
-                  <Progress value={percentage} className="h-3" />
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-r ${subject.color} rounded-full opacity-80`}
-                    style={{ width: `${percentage}%` }}
-                  ></div>
-                </div>
+              )
+            })}
+            {subjectProgress.length === 0 && (
+              <div className="col-span-2 text-center py-8 text-gray-500">
+                <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Start Learning!</p>
+                <p>Complete quizzes to track your progress across subjects.</p>
               </div>
-            )
-          })}
-
-          {subjectProgress.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Start Learning!</p>
-              <p>Complete quizzes to track your progress across subjects.</p>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
-
-      {/* Study Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-          <CardContent className="p-6 text-center">
-            <Zap className="w-8 h-8 mx-auto mb-3" />
-            <div className="text-2xl font-bold">{currentXP}</div>
-            <div className="text-sm opacity-80">Total XP</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white">
-          <CardContent className="p-6 text-center">
-            <Trophy className="w-8 h-8 mx-auto mb-3" />
-            <div className="text-2xl font-bold">{userProgress?.total_quizzes_completed || 0}</div>
-            <div className="text-sm opacity-80">Quizzes Completed</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-          <CardContent className="p-6 text-center">
-            <TrendingUp className="w-8 h-8 mx-auto mb-3" />
-            <div className="text-2xl font-bold">{Math.floor((userProgress?.total_study_time_minutes || 0) / 60)}h</div>
-            <div className="text-sm opacity-80">Study Time</div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
+

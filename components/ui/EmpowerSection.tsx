@@ -65,7 +65,7 @@ export function EmpowerSection() {
   ]
 
   const stats = [
-    { icon: Users, value: "10,000+", label: "Happy Students" },
+    // { icon: Users, value: "10,000+", label: "Happy Students" },
     { icon: Star, value: "4.9/5", label: "Parent Rating" },
     { icon: TrendingUp, value: "85%", label: "Improvement Rate" },
     { icon: Shield, value: "100%", label: "Safe & Secure" },
