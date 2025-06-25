@@ -78,7 +78,7 @@ export const Footer7 = ({
   sections = defaultSections,
   description = 'Making learning feel like play for every student. AI-powered education that transforms boring study sessions into exciting adventures.',
   socialLinks = defaultSocialLinks,
-  copyright = '© 2024 BrainBuddy. All rights reserved. Made with ❤️ for young learners.',
+  copyright = '© 2025 BrainBuddy. All rights reserved. Made with ❤️ for young learners by Neon Genesis.',
   legalLinks = defaultLegalLinks,
 }: Footer7Props) => {
   return (

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Leaderboard } from "@/components/leaderboard"
 
 interface NavItem {
   name: string
