@@ -180,39 +180,6 @@ export default function LandingPage() {
         <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
       </section>
 
-      {/* Hero Visual */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto">
-          <div className="relative max-w-4xl mx-auto">
-            <div className="bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 rounded-3xl p-8 shadow-2xl dark:from-purple-600 dark:via-blue-600 dark:to-pink-600">
-              <div className="bg-background rounded-2xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-purple-200 hover:shadow-lg transition-shadow dark:border-purple-700">
-                  <CardContent className="p-4 text-center">
-                    <Upload className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">Upload & Learn</h3>
-                    <p className="text-sm text-muted-foreground">Drop your notes, PDFs, or videos</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-blue-200 hover:shadow-lg transition-shadow dark:border-blue-700">
-                  <CardContent className="p-4 text-center">
-                    <Brain className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">AI Magic</h3>
-                    <p className="text-sm text-muted-foreground">Get personalized quizzes & summaries</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-pink-200 hover:shadow-lg transition-shadow dark:border-pink-700">
-                  <CardContent className="p-4 text-center">
-                    <Trophy className="w-8 h-8 text-pink-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-foreground">Earn Rewards</h3>
-                    <p className="text-sm text-muted-foreground">Level up with XP, badges & streaks</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section id="features" className="py-16 px-4 bg-muted/50">
         <div className="container mx-auto">
