@@ -80,6 +80,13 @@ export default function DashboardPage() {
     newLevel: number
   } | null>(null)
   const supabase = createClient()
+  // Daily Quests & Streak state
+  const [quests, setQuests] = useState<any[]>([])
+  const [streak, setStreak] = useState<number>(0)
+  const [lastCompleted, setLastCompleted] = useState<string | null>(null)
+  const [questLoading, setQuestLoading] = useState(false)
+  const [questError, setQuestError] = useState<string | null>(null)
+  const [completedQuestIds, setCompletedQuestIds] = useState<number[]>([])
 
   const tabItems = [
     { key: "overview", label: "Overview", icon: BarChart3 },
@@ -101,7 +108,57 @@ export default function DashboardPage() {
 
     fetchUserData()
     initializeUserInLeaderboard()
+    fetchDailyQuests()
+    fetchStreak()
+    fetchCompletedQuests()
   }, [user, router])
+
+  useEffect(() => {
+    if (!user || quests.length === 0) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const checkAndMarkQuests = async () => {
+      // Fetch user progress for today
+      const { data: progress } = await supabase
+        .from("user_progress")
+        .select("total_quizzes_completed, last_activity_date, total_study_time_minutes")
+        .eq("user_id", user.id)
+        .single();
+
+      for (const quest of quests) {
+        if (!completedQuestIds.includes(quest.id)) {
+          // Complete Quiz Quest
+          if (
+            quest.type === "complete_quiz" &&
+            progress?.last_activity_date === today &&
+            progress?.total_quizzes_completed > 0
+          ) {
+            await fetch("/api/complete-quest", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ quest_id: quest.id }),
+            });
+            setCompletedQuestIds((prev) => [...prev, quest.id]);
+          }
+          // Study Time Quest (e.g., 10 minutes)
+          if (
+            quest.type === "study_time" &&
+            progress?.total_study_time_minutes >= (quest.target_value || 10)
+          ) {
+            await fetch("/api/complete-quest", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ quest_id: quest.id }),
+            });
+            setCompletedQuestIds((prev) => [...prev, quest.id]);
+          }
+        }
+      }
+    };
+
+    checkAndMarkQuests();
+  }, [user, quests, completedQuestIds]);
 
   const initializeUserInLeaderboard = async () => {
     if (!user) return
@@ -251,13 +308,13 @@ export default function DashboardPage() {
     const xpEarned = Math.floor((score / totalQuestions) * 50) // Base XP calculation
 
     // Record quiz completion activity
-    await recordActivity("quiz_completed", xpEarned)
+    await recordActivity("quiz_completed",)
 
     // Create completion notification
     await supabase.from("notifications").insert({
       user_id: user?.id,
       title: "Quiz Completed! 🎉",
-      message: `Great job! You scored ${score}/${totalQuestions} and earned ${xpEarned} XP!`,
+      message: `Great job! You scored ${score}/${totalQuestions}`,
       type: "success",
     })
 
@@ -320,6 +377,70 @@ export default function DashboardPage() {
       alert("Failed to delete quiz. Please try again.");
     }
   };
+
+  // Fetch daily quests and streak
+  const fetchDailyQuests = async () => {
+    setQuestLoading(true)
+    setQuestError(null)
+    try {
+      const res = await fetch("/api/daily-quests")
+      const data = await res.json()
+      setQuests(data.quests || [])
+    } catch (e) {
+      setQuestError("completed 5 minutes of study time")
+    } finally {
+      setQuestLoading(false)
+    }
+  }
+
+  const fetchStreak = async () => {
+    try {
+      const res = await fetch("/api/streak")
+      const data = await res.json()
+      setStreak(data.streak || 0)
+      setLastCompleted(data.last_completed_at || null)
+    } catch (e) {
+      setStreak(0)
+      setLastCompleted(null)
+    }
+  }
+
+  const fetchCompletedQuests = async () => {
+    if (!user) return
+    const today = new Date().toISOString().slice(0, 10)
+    const { data, error } = await supabase
+      .from("user_quest_completions")
+      .select("quest_id")
+      .eq("user_id", user.id)
+      .eq("completed_date", today)
+    if (!error && data) {
+      setCompletedQuestIds(data.map((q: any) => q.quest_id))
+    }
+  }
+
+  const handleCompleteQuest = async (questId: number) => {
+    setQuestLoading(true)
+    setQuestError(null)
+    try {
+      const res = await fetch("/api/complete-quest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quest_id: questId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCompletedQuestIds((prev) => [...prev, questId])
+        setStreak(data.newStreak || streak)
+        fetchStreak()
+      } else {
+        setQuestError(data.error || "Failed to complete quest.")
+      }
+    } catch (e) {
+      setQuestError("Failed to complete quest.")
+    } finally {
+      setQuestLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -456,6 +577,60 @@ export default function DashboardPage() {
           <div className="container mx-auto px-4 pt-4 pb-8">
             {/* Main Dashboard Tabs */}
             <div className="space-y-6">
+              {/* Daily Quests & Streak Section */}
+              <Card className="mb-6">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <Flame className="text-orange-500" size={32} />
+                  <div>
+                    <CardTitle>Daily Quests</CardTitle>
+                    <CardDescription>
+                      Complete quests every day to build your streak!
+                    </CardDescription>
+                  </div>
+                  <div className="ml-auto flex flex-col items-end">
+                    <span className="text-lg font-bold flex items-center gap-1">
+                      <Flame className="text-orange-500" size={20} />
+                      Streak: {streak}
+                    </span>
+                    {lastCompleted && (
+                      <span className="text-xs text-muted-foreground">Last completed: {lastCompleted}</span>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {questLoading ? (
+                    <div>Loading quests...</div>
+                  ) : questError ? (
+                    <div className="text-red-500">{questError}</div>
+                  ) : quests.length === 0 ? (
+                    <div>No quests for today. Check back tomorrow!</div>
+                  ) : (
+                    <ul className="space-y-3">
+                      {quests.map((quest) => (
+                        <li key={quest.id} className="flex items-center gap-3">
+                          <span className="flex-1">{quest.description}</span>
+                          <Badge>{quest.reward}</Badge>
+                          {completedQuestIds.includes(quest.id) ? (
+                            <Button variant="default" size="sm" disabled className="flex items-center gap-1">
+                              <CheckCircle className="text-green-500" size={16} /> Completed
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompleteQuest(quest.id)}
+                              disabled={questLoading}
+                            >
+                              Mark Complete
+                            </Button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Overview Tab */}
               {activeTab === "overview" && (
                 <div className="space-y-6">
@@ -536,9 +711,9 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-muted-foreground">Streak Days</p>
-                      <p className="text-3xl font-bold text-foreground">{streakDays}</p>
+                      <p className="text-3xl font-bold text-foreground">{streak}</p>
                       <p className="text-xs text-muted-foreground">
-                        {streakDays >= 7 ? "Amazing streak! 🔥" : streakDays > 0 ? "Keep it up! 💪" : "Start your streak today!"}
+                        {streak >= 7 ? "Amazing streak! 🔥" : streak > 0 ? "Keep it up! 💪" : "Start your streak today!"}
                       </p>
                     </div>
                   </CardContent>
