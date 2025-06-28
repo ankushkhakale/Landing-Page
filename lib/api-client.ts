@@ -59,3 +59,70 @@ export async function extractTextFromImage(imageData: string, userId: string) {
 
   return data.text
 }
+
+// New NLP API functions
+export async function analyzeText(text: string, userId: string, analysisType = "comprehensive") {
+  const response = await fetch("/api/nlp/analyze-text", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, userId, analysisType }),
+  })
+
+  const data = await response.json()
+  if (!data.success) {
+    throw new Error(data.error || "Failed to analyze text")
+  }
+
+  return data.analysis
+}
+
+export async function checkGrammar(text: string, userId: string, checkType = "grammar") {
+  const response = await fetch("/api/nlp/grammar-check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, userId, checkType }),
+  })
+
+  const data = await response.json()
+  if (!data.success) {
+    throw new Error(data.error || "Failed to check grammar")
+  }
+
+  return data.grammarCheck
+}
+
+export async function enhanceVocabulary(text: string, userId: string, enhancementType = "synonyms") {
+  const response = await fetch("/api/nlp/vocabulary-enhancer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, userId, enhancementType }),
+  })
+
+  const data = await response.json()
+  if (!data.success) {
+    throw new Error(data.error || "Failed to enhance vocabulary")
+  }
+
+  return data.vocabularyEnhancement
+}
+
+export async function getLearningRecommendations(
+  userId: string,
+  subject?: string,
+  currentLevel?: string,
+  learningStyle?: string,
+  recentTopics?: string[]
+) {
+  const response = await fetch("/api/nlp/learning-recommendations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, subject, currentLevel, learningStyle, recentTopics }),
+  })
+
+  const data = await response.json()
+  if (!data.success) {
+    throw new Error(data.error || "Failed to get learning recommendations")
+  }
+
+  return data.recommendations
+}

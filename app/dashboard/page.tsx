@@ -29,6 +29,7 @@ import {
   Trash2,
   Mail,
   Phone,
+  Sparkles,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase-client"
@@ -42,6 +43,7 @@ import { NotificationSystem } from "@/components/notification-system"
 import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
 import { SidebarTabs } from "@/components/ui/SidebarTabs"
+import { NLPTools } from "@/components/nlp-tools"
 
 interface UserProgress {
   xp_points: number
@@ -69,7 +71,7 @@ export default function DashboardPage() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<
-    "overview" | "learn" | "practice" | "progress" | "achievements" | "leaderboard" | "chat" | "profile" | "more" | "help" | "faq"
+    "overview" | "learn" | "practice" | "progress" | "achievements" | "leaderboard" | "chat" | "profile" | "more" | "help" | "faq" | "nlp-tools"
   >("overview")
   const [moreSubTab, setMoreSubTab] = useState<"help" | "faq">("help")
   const [difficulty, setDifficulty] = useState("medium")
@@ -85,6 +87,7 @@ export default function DashboardPage() {
     { key: "overview", label: "Overview", icon: BarChart3 },
     { key: "learn", label: "Learn", icon: BookOpen },
     { key: "practice", label: "Practice", icon: PlayCircle },
+    { key: "nlp-tools", label: "NLP Tools", icon: Sparkles },
     { key: "progress", label: "Progress", icon: TrendingUp },
     { key: "achievements", label: "Achievements", icon: Award },
     { key: "leaderboard", label: "Leaderboard", icon: Crown },
@@ -821,6 +824,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* NLP Tools Tab */}
+          {activeTab === "nlp-tools" && (
+            <div className="space-y-6">
+              <NLPTools />
             </div>
           )}
             </div>
