@@ -292,10 +292,10 @@ export function ProgressTracker() {
             </p>
           </div>
           <div className="flex justify-center items-center gap-4 w-full text-xs mt-2">
-            <span>{getXPForLevel(currentLevel)} XP</span>
+              <span>{getXPForLevel(currentLevel)} XP</span>
             <span className="font-bold text-lg text-purple-700 dark:text-purple-200">{currentXP} XP</span>
-            <span>{xpForNext} XP</span>
-          </div>
+              <span>{xpForNext} XP</span>
+            </div>
           <div className="w-full flex justify-center mt-2">
             <Progress value={levelProgress} className="h-2 bg-purple-100 dark:bg-purple-900 w-full max-w-[180px]" />
           </div>
@@ -314,7 +314,7 @@ export function ProgressTracker() {
                     {streakDays}
                   </span>
                   <span className="text-sm font-medium text-orange-700 dark:text-orange-200 mt-1">Current Streak</span>
-                </div>
+            </div>
                 <span className="text-xs text-orange-500 dark:text-orange-200 mt-2">{getStreakMessage(streakDays)}</span>
               </>
             ) : (
@@ -391,8 +391,8 @@ export function ProgressTracker() {
                     `}
                     title={active ? 'Active' : 'No activity'}
                   />
-                ))}
-              </div>
+            ))}
+          </div>
               <div className="flex items-center gap-2 mt-1 text-xs">
                 <Flame className="w-4 h-4 text-orange-400" />
                 <span className="font-semibold text-gray-700 dark:text-gray-200">
@@ -471,34 +471,34 @@ export function ProgressTracker() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {defaultSubjects.map((subject) => {
-              const progress = subjectProgress.find((p) => p.subject_name === subject.name)
-              const percentage = progress?.progress_percentage || 0
-              const quizCount = progress?.quizzes_completed || 0
+          {defaultSubjects.map((subject) => {
+            const progress = subjectProgress.find((p) => p.subject_name === subject.name)
+            const percentage = progress?.progress_percentage || 0
+            const quizCount = progress?.quizzes_completed || 0
               const accent = subject.color.replace('from-', 'border-l-4 border-').replace(' to-', ' ')
-              return (
+            return (
                 <div key={subject.name} className={`flex flex-col justify-between bg-white dark:bg-[#23223a] rounded-xl shadow border ${accent} p-4 min-h-[110px] transition-all`}> 
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-2xl">{subject.icon}</span>
                     <span className="font-semibold text-base text-gray-800 dark:text-gray-100">{subject.name}</span>
-                  </div>
+                    </div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-500">{quizCount} quizzes</span>
                     <span className="text-xs font-bold text-gray-700 dark:text-gray-200">{percentage}%</span>
                   </div>
                   <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div className={`h-2 rounded-full transition-all duration-500 ${subjectBarColors[subject.name]}`} style={{ width: `${percentage}%` }}></div>
-                  </div>
                 </div>
-              )
-            })}
-            {subjectProgress.length === 0 && (
-              <div className="col-span-2 text-center py-8 text-gray-500">
-                <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Start Learning!</p>
-                <p>Complete quizzes to track your progress across subjects.</p>
               </div>
-            )}
+            )
+          })}
+          {subjectProgress.length === 0 && (
+              <div className="col-span-2 text-center py-8 text-gray-500">
+              <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">Start Learning!</p>
+              <p>Complete quizzes to track your progress across subjects.</p>
+            </div>
+          )}
           </div>
         </CardContent>
       </Card>
