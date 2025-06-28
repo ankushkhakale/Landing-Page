@@ -27,9 +27,10 @@ interface Quiz {
 interface QuizPlayerProps {
   quiz: Quiz
   onComplete: (score: number, totalQuestions: number, timeSpent: number) => void
+  onClose?: () => void
 }
 
-export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
+export function QuizPlayerEnhanced({ quiz, onComplete, onClose }: QuizPlayerProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -40,14 +41,15 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { user } = useAuth()
   const supabase = createClient()
+  const [timerActive, setTimerActive] = useState(true)
 
   useEffect(() => {
+    if (!timerActive) return
     const timer = setInterval(() => {
       setTimeSpent(Math.floor((Date.now() - startTime) / 1000))
     }, 1000)
-
     return () => clearInterval(timer)
-  }, [startTime])
+  }, [startTime, timerActive])
 
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...selectedAnswers]
@@ -72,6 +74,7 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
   const finishQuiz = async () => {
     if (isSubmitting) return
     setIsSubmitting(true)
+    setTimerActive(false)
 
     const score = selectedAnswers.reduce((acc, answer, index) => {
       return acc + (answer === quiz.questions[index].correctAnswer ? 1 : 0)
@@ -174,95 +177,95 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
     const isCorrect = userAnswer === question.correctAnswer
 
     return (
-      <Card className="border-0 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg">
-          <CardTitle className="flex items-center justify-between">
-            <span>Review Mode - Question {reviewQuestion + 1}</span>
-            <Button variant="ghost" className="text-white" onClick={() => setShowReview(false)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Results
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-8">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">{question.question}</h3>
+      <div className="max-w-xl mx-auto w-full">
+        <Card className="border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg">
+            <CardTitle className="flex items-center justify-between">
+              <span>Review Mode - Question {reviewQuestion + 1}</span>
+              <Button variant="ghost" className="text-white" onClick={() => setShowReview(false)}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Results
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 sm:p-8 text-center">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">{question.question}</h3>
 
-            <div className="space-y-3">
-              {question.options.map((option, index) => (
-                <div
-                  key={index}
-                  className={`p-4 rounded-lg border-2 ${
-                    index === question.correctAnswer
-                      ? "border-green-500 bg-green-50"
-                      : index === userAnswer && !isCorrect
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-200 bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        index === question.correctAnswer
-                          ? "border-green-500 bg-green-500"
-                          : index === userAnswer && !isCorrect
-                            ? "border-red-500 bg-red-500"
-                            : "border-gray-300"
-                      }`}
-                    >
-                      {index === question.correctAnswer && <CheckCircle className="w-4 h-4 text-white" />}
-                      {index === userAnswer && !isCorrect && <XCircle className="w-4 h-4 text-white" />}
+              <div className="space-y-3">
+                {question.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-lg border-2
+                      ${index === question.correctAnswer
+                        ? 'border-green-500 bg-green-50 dark:bg-green-700/40 dark:border-green-400 dark:text-white'
+                        : index === userAnswer && !isCorrect
+                          ? 'border-red-500 bg-red-50 dark:bg-red-700/40 dark:border-red-400 dark:text-white'
+                          : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-200'}
+                    `}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
+                          ${index === question.correctAnswer
+                            ? 'border-green-500 bg-green-500 dark:bg-purple-400 dark:border-purple-300'
+                            : index === userAnswer && !isCorrect
+                              ? 'border-red-500 bg-red-500 dark:bg-purple-400 dark:border-purple-300'
+                              : 'border-gray-300 dark:border-gray-600'}
+                        `}
+                      >
+                        {index === question.correctAnswer && <CheckCircle className="w-4 h-4 text-white" />}
+                        {index === userAnswer && !isCorrect && <XCircle className="w-4 h-4 text-white" />}
+                      </div>
+                      <span className="font-medium">{String.fromCharCode(65 + index)}.</span>
+                      <span className={index === question.correctAnswer ? "font-bold text-green-700" : ""}>{option}</span>
                     </div>
-                    <span className="font-medium">{String.fromCharCode(65 + index)}.</span>
-                    <span className={index === question.correctAnswer ? "font-bold text-green-700" : ""}>{option}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-bold text-blue-800 mb-2">Explanation:</h4>
-              <p className="text-blue-700">{question.explanation}</p>
-            </div>
-
-            {userAnswer !== undefined && (
-              <div className="mt-4 p-4 rounded-lg bg-gray-50">
-                <p className="font-medium">
-                  Your answer:{" "}
-                  <span className={isCorrect ? "text-green-600" : "text-red-600"}>{question.options[userAnswer]}</span>
-                </p>
-                <p className="font-medium">
-                  Correct answer: <span className="text-green-600">{question.options[question.correctAnswer]}</span>
-                </p>
+                ))}
               </div>
-            )}
-          </div>
 
-          <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setReviewQuestion(Math.max(0, reviewQuestion - 1))}
-              disabled={reviewQuestion === 0}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-bold text-blue-800 mb-2">Explanation:</h4>
+                <p className="text-blue-700">{question.explanation}</p>
+              </div>
 
-            <span className="text-sm text-gray-500 self-center">
-              {reviewQuestion + 1} of {quiz.questions.length}
-            </span>
+              {userAnswer !== undefined && (
+                null
+              )}
+            </div>
 
-            <Button
-              variant="outline"
-              onClick={() => setReviewQuestion(Math.min(quiz.questions.length - 1, reviewQuestion + 1))}
-              disabled={reviewQuestion === quiz.questions.length - 1}
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setReviewQuestion(Math.max(0, reviewQuestion - 1))}
+                disabled={reviewQuestion === 0}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+
+              <span className="text-sm text-gray-500 self-center">
+                {reviewQuestion + 1} of {quiz.questions.length}
+              </span>
+
+              <Button
+                variant="outline"
+                onClick={() => setReviewQuestion(Math.min(quiz.questions.length - 1, reviewQuestion + 1))}
+                disabled={reviewQuestion === quiz.questions.length - 1}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+
+            <div className="flex justify-between mt-8">
+              <Button variant="outline" onClick={onClose}>
+                Close Review
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
@@ -275,71 +278,46 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
     const xpGained = calculateXP(score, quiz.questions.length, quiz.difficulty_level)
 
     return (
-      <Card className="border-0 shadow-xl">
-        <CardHeader className="text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg">
-          <CardTitle className="text-2xl font-bold">Quiz Complete! 🎉</CardTitle>
-        </CardHeader>
-        <CardContent className="p-8 text-center">
-          <div className="w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Trophy className="w-12 h-12 text-white" />
+      <Card className="max-w-xl mx-auto mt-10 p-8 rounded-2xl shadow-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#23223a] dark:to-[#181c2f] border border-gray-200 dark:border-gray-800">
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-2">
+            <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
+            <h2 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight mb-1">Quiz Completed!</h2>
+            <span className="text-lg text-gray-500 dark:text-gray-300">Well done on finishing the quiz.</span>
           </div>
 
-          <h3 className="text-4xl font-bold mb-2 text-gray-800">{percentage}%</h3>
-          <p className={`text-xl font-semibold mb-2 ${getScoreColor(score, quiz.questions.length)}`}>
-            {score} out of {quiz.questions.length} correct
-          </p>
-          <p className="text-lg text-gray-600 mb-6">{getScoreMessage(score, quiz.questions.length)}</p>
-
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <Clock className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Time Spent</p>
-              <p className="font-bold text-blue-600">{formatTime(timeSpent)}</p>
+          <div className="flex flex-row items-center gap-8 mt-4">
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Score</span>
+              <div className="w-20 h-20 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-3xl font-extrabold border-2 border-blue-300 dark:border-blue-700 shadow p-0">
+                {score} <span className="text-xl font-bold mx-1">/</span> {quiz.questions.length}
+              </div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <Star className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">XP Earned</p>
-              <p className="font-bold text-purple-600">{xpGained}</p>
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">XP Earned</span>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 text-2xl font-bold border-2 border-purple-300 dark:border-purple-700 shadow">
+                +{xpGained}
+              </div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <Trophy className="w-6 h-6 text-green-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Accuracy</p>
-              <p className="font-bold text-green-600">{percentage}%</p>
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Time</span>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xl font-semibold border-2 border-gray-200 dark:border-gray-700 shadow">
+                {formatTime(timeSpent)}
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button
-              onClick={() => setShowReview(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
+          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-8" />
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <Button variant="default" className="w-full sm:w-auto" onClick={() => setShowReview(true)}>
               Review Answers
             </Button>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Retake Quiz
+            <Button variant="outline" className="w-full sm:w-auto" onClick={onClose}>
+              Back to Dashboard
             </Button>
           </div>
-
-          <div className="text-left bg-gray-50 rounded-lg p-6">
-            <h4 className="font-bold text-gray-800 mb-4">Quick Summary:</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-green-600 font-medium">✓ Correct: {score}</span>
-              </div>
-              <div>
-                <span className="text-red-600 font-medium">✗ Incorrect: {quiz.questions.length - score}</span>
-              </div>
-              <div>
-                <span className="text-blue-600 font-medium">⏱ Time: {formatTime(timeSpent)}</span>
-              </div>
-              <div>
-                <span className="text-purple-600 font-medium">⭐ XP: +{xpGained}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+        </div>
       </Card>
     )
   }
@@ -366,7 +344,7 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
 
         <Progress value={progress} className="h-3 mb-4" />
 
-        <CardTitle className="text-xl font-bold text-gray-800">{question.question}</CardTitle>
+        <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-100">{question.question}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -374,17 +352,19 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
           <button
             key={index}
             onClick={() => handleAnswerSelect(index)}
-            className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-              selectedAnswers[currentQuestion] === index
-                ? "border-purple-500 bg-purple-50"
-                : "border-gray-200 hover:border-purple-300 hover:bg-purple-25"
-            }`}
+            className={`w-full p-4 text-left rounded-lg border-2 transition-all
+              ${selectedAnswers[currentQuestion] === index
+                ? 'border-purple-500 bg-purple-50 dark:bg-purple-700/80 dark:text-white dark:border-purple-400'
+                : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25 dark:border-gray-700 dark:hover:border-purple-500/40 dark:hover:bg-purple-900/40 dark:text-gray-200'}
+            `}
           >
             <div className="flex items-center space-x-3">
               <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  selectedAnswers[currentQuestion] === index ? "border-purple-500 bg-purple-500" : "border-gray-300"
-                }`}
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
+                  ${selectedAnswers[currentQuestion] === index
+                    ? 'border-purple-500 bg-purple-500 dark:bg-purple-400 dark:border-purple-300'
+                    : 'border-gray-300 dark:border-gray-600'}
+                `}
               >
                 {selectedAnswers[currentQuestion] === index && <div className="w-2 h-2 bg-white rounded-full"></div>}
               </div>

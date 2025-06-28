@@ -26,6 +26,9 @@ import {
   Crown,
   PlayCircle,
   CheckCircle,
+  Trash2,
+  Mail,
+  Phone,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase-client"
@@ -38,6 +41,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationSystem } from "@/components/notification-system"
 import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
+import { SidebarTabs } from "@/components/ui/SidebarTabs"
 
 interface UserProgress {
   xp_points: number
@@ -64,7 +68,10 @@ export default function DashboardPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "learn" | "practice" | "progress" | "achievements" | "leaderboard" | "chat" | "profile" | "more" | "help" | "faq"
+  >("overview")
+  const [moreSubTab, setMoreSubTab] = useState<"help" | "faq">("help")
   const [difficulty, setDifficulty] = useState("medium")
   const [contentType, setContentType] = useState("quiz")
   const [levelUpNotification, setLevelUpNotification] = useState<{
@@ -73,6 +80,18 @@ export default function DashboardPage() {
     newLevel: number
   } | null>(null)
   const supabase = createClient()
+
+  const tabItems = [
+    { key: "overview", label: "Overview", icon: BarChart3 },
+    { key: "learn", label: "Learn", icon: BookOpen },
+    { key: "practice", label: "Practice", icon: PlayCircle },
+    { key: "progress", label: "Progress", icon: TrendingUp },
+    { key: "achievements", label: "Achievements", icon: Award },
+    { key: "leaderboard", label: "Leaderboard", icon: Crown },
+    { key: "chat", label: "Chat", icon: MessageCircle },
+    { key: "profile", label: "Profile", icon: User },
+    { key: "more", label: "More", icon: FileText },
+  ]
 
   useEffect(() => {
     if (!user) {
@@ -244,8 +263,9 @@ export default function DashboardPage() {
 
     // Refresh user data to get updated progress
     await fetchUserData()
-    setSelectedQuiz(null)
-    setActiveTab("overview")
+    // Do NOT close the quiz or reset selectedQuiz here. Let the user close it from the review/results UI.
+    // setSelectedQuiz(null)
+    // setActiveTab("overview")
   }
 
   const startQuiz = (quiz: Quiz) => {
@@ -291,6 +311,16 @@ export default function DashboardPage() {
     return Math.min(100, (progressXP / totalXPNeeded) * 100)
   }
 
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (!window.confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      await supabase.from("quizzes").delete().eq("id", quizId);
+      setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+    } catch (error) {
+      alert("Failed to delete quiz. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -313,7 +343,7 @@ export default function DashboardPage() {
               ← Back to Dashboard
             </Button>
           </div>
-          <QuizPlayerEnhanced quiz={selectedQuiz} onComplete={handleQuizComplete} />
+          <QuizPlayerEnhanced quiz={selectedQuiz} onComplete={handleQuizComplete} onClose={() => { setSelectedQuiz(null); setActiveTab("overview"); }} />
         </div>
       </div>
     )
@@ -327,7 +357,80 @@ export default function DashboardPage() {
   const xpNeeded = xpForNext - currentXP
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
+      {/* Navbar at the top */}
+      <header className="bg-white/40 dark:bg-[#181c2f]/70 backdrop-blur-lg border-b border-white/40 dark:border-[#23284a] sticky top-0 z-40 shadow-lg">
+        <div className="container mx-auto px-6 py-3">
+          <div className="flex items-center justify-between w-full">
+            {/* Left: Logo and Brand */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
+                  BrainBuddy
+                </span>
+                <span className="text-sm text-muted-foreground truncate">Learning Dashboard</span>
+              </div>
+            </div>
+
+            {/* Right: Badges, Theme, Notifications, User */}
+            <div className="flex items-center gap-3">
+              {/* Streak Badge */}
+              <div className="flex items-center bg-orange-50 rounded-full px-3 py-1 shadow text-orange-700 font-semibold text-sm gap-1 border border-orange-100">
+                <Flame className="w-5 h-5 text-orange-500" />
+                <span className="font-bold">{streakDays}</span>
+                <span className="text-xs">day streak</span>
+              </div>
+              {/* Level Badge */}
+              <div className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-4 py-1 shadow text-white font-bold text-sm gap-1">
+                <Crown className="w-5 h-5" />
+                Level {currentLevel}
+              </div>
+              {/* Theme Toggle */}
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+              {/* Notifications */}
+              <div className="flex items-center">
+                <NotificationSystem />
+              </div>
+              {/* User Info */}
+              <div className="flex items-center gap-3">
+                <Avatar className="w-9 h-9 border-2 border-purple-200">
+                  <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold">
+                    {user?.user_metadata?.full_name?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block min-w-0 text-right">
+                  <p className="font-semibold text-foreground truncate text-base leading-tight">{user?.user_metadata?.full_name || "Learner"}</p>
+                  <p className="text-sm text-muted-foreground truncate">{currentXP} XP</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="ml-1 p-1">
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      {/* Main dashboard content below navbar */}
+      <div className="flex flex-1 min-h-0">
+        <SidebarTabs
+          items={tabItems}
+          activeTab={activeTab}
+          onTabChange={(key: string) => {
+            if (key === "help" || key === "faq") {
+              setActiveTab("more");
+              setMoreSubTab(key as "help" | "faq");
+            } else {
+              setActiveTab(key as typeof activeTab);
+            }
+          }}
+        />
+        <div className="flex-1 bg-background min-h-0 overflow-auto">
       {/* Level Up Notification */}
       {levelUpNotification?.show && (
         <div className="fixed top-4 right-4 z-50 animate-bounce">
@@ -350,68 +453,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="bg-background/90 backdrop-blur-lg border-b border-purple-100 sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Brain className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  BrainBuddy
-                </h1>
-                <p className="text-sm text-muted-foreground">Learning Dashboard</p>
-              </div>
-            </div>
-
-            {/* User Info & Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Streak Counter */}
-              <div className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-100 to-red-100 px-4 py-2 rounded-full">
-                <Flame className={`w-5 h-5 ${streakDays > 0 ? "text-orange-500" : "text-gray-400"}`} />
-                <span className={`font-bold ${streakDays > 0 ? "text-orange-700" : "text-gray-500"}`}>
-                  {streakDays}
-                </span>
-                <span className={`text-sm ${streakDays > 0 ? "text-orange-600" : "text-gray-500"}`}>day streak</span>
-              </div>
-
-              {/* Level Badge */}
-              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm font-bold">
-                <Crown className="w-4 h-4 mr-1" />
-                Level {currentLevel}
-              </Badge>
-
-              {/* Theme Toggle */}
-              <ThemeToggle />
-
-              {/* Notifications */}
-              <NotificationSystem />
-
-              {/* Profile Menu */}
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10 border-2 border-purple-200">
-                  <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold">
-                    {user?.user_metadata?.full_name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="font-semibold text-foreground">{user?.user_metadata?.full_name || "Learner"}</p>
-                  <p className="text-sm text-muted-foreground">{currentXP} XP</p>
-                </div>
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
+          <div className="container mx-auto px-4 pt-4 pb-8">
+            {/* Main Dashboard Tabs */}
+            <div className="space-y-6">
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <div className="space-y-6">
         {/* Welcome Section */}
         <div className="mb-6 pt-6 pb-6">
           <div className="text-left space-y-6">
@@ -421,7 +468,6 @@ export default function DashboardPage() {
               </h1>
               <p className="text-lg text-muted-foreground">Ready to continue your learning adventure?</p>
             </div>
-
             {/* XP Progress Bar */}
             <div className="bg-muted rounded-full p-1 max-w-md">
               <div className="bg-background rounded-full px-4 py-2 flex items-center justify-between text-sm">
@@ -434,7 +480,6 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
-
             <div className="flex flex-wrap gap-4 pt-2">
               <Button
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold"
@@ -455,121 +500,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Custom Tab Buttons */}
-        <div className="mb-6">
-          <div className="flex justify-between">
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "overview" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("overview")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <BarChart3 className="w-4 h-4 mr-2 inline" />
-                Overview
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "learn" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("learn")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <BookOpen className="w-4 h-4 mr-2 inline" />
-                Learn
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "progress" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("progress")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <TrendingUp className="w-4 h-4 mr-2 inline" />
-                Progress
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "achievements" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("achievements")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <Award className="w-4 h-4 mr-2 inline" />
-                Achievements
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "leaderboard" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("leaderboard")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <Crown className="w-4 h-4 mr-2 inline" />
-                Leaderboard
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "chat" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("chat")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <MessageCircle className="w-4 h-4 mr-2 inline" />
-                Chat
-              </span>
-            </button>
-            
-            <button
-              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
-                activeTab === "profile" 
-                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
-                  : ""
-              }`}
-              onClick={() => setActiveTab("profile")}
-            >
-              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
-              <span className="relative z-10">
-                <User className="w-4 h-4 mr-2 inline" />
-                Profile
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Main Dashboard Tabs */}
-        <div className="space-y-6">
-          {/* Overview Tab */}
-          {activeTab === "overview" && (
-            <div className="space-y-6">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total XP Card */}
@@ -652,65 +582,6 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Recent Quizzes */}
-              <Card className="border-0 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    Your Quizzes
-                  </CardTitle>
-                  <CardDescription>Practice with your generated quizzes</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {quizzes.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {quizzes.map((quiz) => (
-                        <Card
-                          key={quiz.id}
-                          className="border-purple-200 hover:shadow-lg transition-shadow cursor-pointer"
-                          onClick={() => startQuiz(quiz)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-semibold text-foreground truncate">{quiz.title}</h4>
-                              <Badge
-                                className={`text-xs ${
-                                  quiz.difficulty_level === "easy"
-                                    ? "bg-green-100 text-green-700"
-                                    : quiz.difficulty_level === "medium"
-                                      ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-red-100 text-red-700"
-                                }`}
-                              >
-                                {quiz.difficulty_level}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{quiz.total_questions} questions</p>
-                            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm">
-                              <PlayCircle className="w-4 h-4 mr-2" />
-                              Start Quiz
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-8 h-8 opacity-50" />
-                      </div>
-                      <p className="text-lg font-medium mb-2">No quizzes yet</p>
-                      <p>Upload some content to generate your first quiz!</p>
-                      <Button
-                        className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                        onClick={() => setActiveTab("learn")}
-                      >
-                        Upload Content
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           )}
 
@@ -772,6 +643,85 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Practice Tab */}
+          {activeTab === "practice" && (
+            <div className="space-y-8">
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Your Quizzes
+                  </CardTitle>
+                  <CardDescription>Practice with your generated quizzes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {quizzes.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {quizzes.map((quiz) => (
+                        <Card
+                          key={quiz.id}
+                          className="border-purple-200 hover:shadow-lg transition-shadow cursor-pointer"
+                          onClick={() => startQuiz(quiz)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-2 gap-2">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <h4 className="font-semibold text-foreground truncate flex-1">{quiz.title}</h4>
+                                <Badge
+                                  className={`text-xs ${
+                                    quiz.difficulty_level === "easy"
+                                      ? "bg-green-100 text-green-700"
+                                      : quiz.difficulty_level === "medium"
+                                        ? "bg-yellow-100 text-yellow-700"
+                                        : "bg-red-100 text-red-700"
+                                  }`}
+                                >
+                                  {quiz.difficulty_level}
+                                </Badge>
+                              </div>
+                              <button
+                                className="ml-2 p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition flex-shrink-0"
+                                title="Delete Quiz"
+                                onClick={e => { e.stopPropagation(); handleDeleteQuiz(quiz.id); }}
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">{quiz.total_questions} questions</p>
+                            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm">
+                              <PlayCircle className="w-4 h-4 mr-2" />
+                              Start Quiz
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-8 h-8 opacity-50" />
+                      </div>
+                      <p className="text-lg font-medium mb-2">No quizzes yet</p>
+                      <p>Upload some content to generate your first quiz!</p>
+                      <Button
+                        className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        onClick={() => setActiveTab("learn")}
+                      >
+                        Upload Content
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <div className="mt-8 text-center">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Daily Challenge</h3>
+                <p className="text-muted-foreground mb-4">Complete today's challenge to earn bonus XP and unlock a surprise!</p>
+                <Button className="bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold px-8 py-3 text-lg rounded-full hover:scale-105 transition-transform">
+                  Take the Daily Challenge
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Progress Tab */}
           {activeTab === "progress" && (
             <div className="space-y-6">
@@ -789,7 +739,7 @@ export default function DashboardPage() {
           {/* Leaderboard Tab */}
           {activeTab === "leaderboard" && (
             <div className="space-y-6">
-              <Leaderboard limit={20} showCurrentUser={true} variant="full" />
+                  <Leaderboard limit={15} showCurrentUser={true} variant="full" />
             </div>
           )}
 
@@ -806,6 +756,75 @@ export default function DashboardPage() {
               <EditableProfile onProfileUpdate={fetchUserData} />
             </div>
           )}
+
+          {/* More Tab */}
+          {activeTab === "more" && (
+            <div className="space-y-6">
+              <div className="flex gap-4 mb-6">
+                <button
+                  className={`px-6 py-2 rounded-lg font-semibold text-base transition-colors duration-150 ${moreSubTab === "help" ? "bg-purple-100 text-purple-700 shadow" : "bg-transparent text-gray-700 hover:bg-purple-50"}`}
+                  onClick={() => setMoreSubTab("help")}
+                >
+                  Help and Support
+                </button>
+                <button
+                  className={`px-6 py-2 rounded-lg font-semibold text-base transition-colors duration-150 ${moreSubTab === "faq" ? "bg-purple-100 text-purple-700 shadow" : "bg-transparent text-gray-700 hover:bg-purple-50"}`}
+                  onClick={() => setMoreSubTab("faq")}
+                >
+                  FAQ
+                </button>
+              </div>
+              {moreSubTab === "help" && (
+                <div className="p-8 rounded-xl shadow text-center space-y-6 bg-white dark:bg-[#181c2f] border border-border dark:border-[#23284a]">
+                  <h2 className="text-2xl font-bold mb-4 text-foreground">Help and Support</h2>
+                  <p className="text-muted-foreground mb-6 text-gray-600 dark:text-gray-400">We're here to help! If you have any questions, issues, or need assistance with BrainBuddy, please reach out to our support team. You can also check our FAQ for quick answers.</p>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="font-semibold text-lg text-foreground">Support & Contact:</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <a href="tel:+917276412788" className="text-blue-700 dark:text-blue-400 hover:underline text-base">+91 72764 12788</a>
+                      <a href="tel:+917588195521" className="text-blue-700 dark:text-blue-400 hover:underline text-base">+91 75881 95521</a>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <a href="mailto:neongenesis.devs@gmail.com" className="text-purple-700 dark:text-purple-300 hover:underline text-base font-medium">neongenesis.devs@gmail.com</a>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {moreSubTab === "faq" && (
+                <div className="p-8 rounded-xl shadow text-left max-w-2xl mx-auto bg-white dark:bg-[#181c2f] border border-border dark:border-[#23284a]">
+                  <h2 className="text-2xl font-bold mb-6 text-center text-foreground">Frequently Asked Questions</h2>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1 text-purple-700 dark:text-purple-300">What is BrainBuddy?</h3>
+                      <p className="text-muted-foreground text-gray-600 dark:text-gray-400">BrainBuddy is an AI-powered learning companion designed to make studying fun, interactive, and personalized for students under 15. It helps you learn through quizzes, flashcards, and gamified progress tracking.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1 text-purple-700 dark:text-purple-300">Is BrainBuddy safe for kids?</h3>
+                      <p className="text-muted-foreground text-gray-600 dark:text-gray-400">Absolutely! BrainBuddy is built with safety and privacy in mind. All content is age-appropriate, and your data is protected with industry-standard security measures.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1 text-purple-700 dark:text-purple-300">How do I generate quizzes or study materials?</h3>
+                      <p className="text-muted-foreground text-gray-600 dark:text-gray-400">Simply upload your notes, PDFs, images, or videos in the Learn section. BrainBuddy will automatically create personalized quizzes, summaries, and flashcards for you to practice.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1 text-purple-700 dark:text-purple-300">Can I track my progress?</h3>
+                      <p className="text-muted-foreground text-gray-600 dark:text-gray-400">Yes! The dashboard shows your XP, level, streaks, and completed quizzes. You can see your growth and celebrate achievements as you learn.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1 text-purple-700 dark:text-purple-300">How do I get help or support?</h3>
+                      <p className="text-muted-foreground text-gray-600 dark:text-gray-400">If you need assistance, visit the Help and Support section under More, or contact us at <a href="mailto:neongenesis.devs@gmail.com" className="text-purple-700 dark:text-purple-300 hover:underline">neongenesis.devs@gmail.com</a> or call our support numbers.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
