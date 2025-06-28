@@ -1,6 +1,9 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import { ProjectTools } from './tools.js';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -14,7 +17,7 @@ const projectRoot = join(__dirname, '..', '..');
 const tools = new ProjectTools(projectRoot);
 
 // Initialize the server
-const server = new McpServer(
+const server = new Server(
   {
     name: 'landing-page-mcp-server',
     version: '1.0.0',
@@ -26,40 +29,88 @@ const server = new McpServer(
   }
 );
 
-// Register tools
-server.registerTool('get_project_info', {
-  title: 'Get Project Info',
-  description: 'Get information about the landing page project',
-  inputSchema: {},
-}, async () => {
-  const result = await tools.getProjectInfo();
+// Handle tool listing
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
-    content: result.content,
+    tools: [
+      {
+        name: 'get_project_info',
+        description: 'Get information about the landing page project',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'analyze_code',
+        description: 'Analyze code files in the project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Path to the file to analyze',
+            },
+          },
+          required: ['filePath'],
+        },
+      },
+      {
+        name: 'list_project_files',
+        description: 'List all files in the project structure',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+    ],
   };
 });
 
-server.registerTool('analyze_code', {
-  title: 'Analyze Code',
-  description: 'Analyze code files in the project',
-  inputSchema: {
-    filePath: z.string().describe('Path to the file to analyze'),
-  },
-}, async ({ filePath }) => {
-  const result = await tools.analyzeCode(filePath);
-  return {
-    content: result.content,
-  };
-});
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
 
-server.registerTool('list_project_files', {
-  title: 'List Project Files',
-  description: 'List all files in the project structure',
-  inputSchema: {},
-}, async () => {
-  const result = await tools.listProjectFiles();
-  return {
-    content: result.content,
-  };
+  try {
+    let result;
+    
+    switch (name) {
+      case 'get_project_info':
+        result = await tools.getProjectInfo();
+        break;
+
+      case 'analyze_code':
+        if (!args || typeof args !== 'object' || !('filePath' in args)) {
+          throw new Error('filePath argument is required');
+        }
+        const filePath = args.filePath as string;
+        result = await tools.analyzeCode(filePath);
+        break;
+
+      case 'list_project_files':
+        result = await tools.listProjectFiles();
+        break;
+
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Return the result in the correct MCP format
+    return {
+      content: result.content,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error executing tool ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      ],
+    };
+  }
 });
 
 // Start the server

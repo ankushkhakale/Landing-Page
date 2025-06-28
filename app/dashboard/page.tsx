@@ -789,7 +789,7 @@ export default function DashboardPage() {
           {/* Leaderboard Tab */}
           {activeTab === "leaderboard" && (
             <div className="space-y-6">
-              <Leaderboard />
+              <Leaderboard limit={20} showCurrentUser={true} variant="full" />
             </div>
           )}
 

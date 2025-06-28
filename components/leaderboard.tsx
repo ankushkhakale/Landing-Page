@@ -19,7 +19,13 @@ interface LeaderboardUser {
   rank_position: number
 }
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  limit?: number
+  showCurrentUser?: boolean
+  variant?: "full" | "compact"
+}
+
+export function Leaderboard({ limit = 10, showCurrentUser = false, variant = "full" }: LeaderboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
   const supabase = createClient()
   const { user } = useAuth()
@@ -27,7 +33,7 @@ export function Leaderboard() {
 
   useEffect(() => {
     fetchLeaderboard()
-  }, [])
+  }, [limit])
 
   const fetchLeaderboard = async () => {
     try {
@@ -35,7 +41,7 @@ export function Leaderboard() {
         .from("leaderboards")
         .select("user_id, username, avatar_url, total_xp, rank_position")
         .order("rank_position", { ascending: true })
-        .limit(10)
+        .limit(limit)
 
       if (error) {
         console.error("Error fetching leaderboard:", error)
@@ -91,6 +97,44 @@ export function Leaderboard() {
       case 3: return "from-amber-600 to-orange-700";
       default: return "from-purple-500 to-pink-500";
     }
+  }
+
+  // If variant is compact, show a simpler version
+  if (variant === "compact") {
+    return (
+      <div className="space-y-2">
+        {leaderboard.slice(0, 5).map((user, index) => (
+          <motion.div
+            key={user.user_id}
+            custom={index}
+            variants={listVariants}
+            initial="hidden"
+            animate="visible"
+            className="group"
+          >
+            <Card className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-colors duration-300">
+              <CardContent className="p-3 flex items-center gap-3">
+                <div className="font-bold text-sm w-6 text-center text-muted-foreground">
+                  {user.rank_position}
+                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs">
+                    {user.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{user.username}</p>
+                </div>
+                <div className="font-bold text-sm text-purple-500">
+                  {user.total_xp} <span className="text-xs text-muted-foreground">XP</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    )
   }
 
   return (
