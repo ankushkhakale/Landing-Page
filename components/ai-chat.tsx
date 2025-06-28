@@ -4,10 +4,20 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Brain, Send, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import {
+  ChatInput,
+  ChatInputTextArea,
+  ChatInputSubmit,
+} from "@/components/ui/chat-input";
+import { motion } from "framer-motion";
+import { RadialProgress } from "@/components/ui/radial-progress";
+import { AIMoodRadar } from "@/components/ui/ai-mood-radar";
+import { LearningInsights } from "@/components/ui/learning-insights";
+import { GoalTracker } from "@/components/ui/goal-tracker";
+import { CommandPalette } from "@/components/ui/command-palette";
 
 interface Message {
   id: string
@@ -104,104 +114,109 @@ export function AIChat() {
   }
 
   return (
-    <Card className="border-0 shadow-xl h-[600px] flex flex-col">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-t-lg">
-        <CardTitle className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
-            <Brain className="w-6 h-6" />
+    <div className="relative min-h-[600px] h-full w-full flex flex-col justify-end bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#334155] bg-fixed overflow-hidden font-sans">
+      {/* Floating glass header */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-8 py-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 drop-shadow-2xl">
+        <span className="flex items-center gap-2 text-sky-300 font-bold text-lg animate-pulse">
+          <span className="w-3 h-3 rounded-full bg-sky-400 shadow-[0_0_8px_#38BDF8] animate-pulse" />
+          Learning Mode: Active
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-slate-200 font-semibold">Current Focus:</span>
+          <span className="text-purple-300 font-bold animate-pulse">Physics: Newton's Laws</span>
+          <RadialProgress value={72} size={48} color="#38BDF8" icon={null} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="bg-purple-400/20 text-purple-200 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span>🔥</span> 3d Streak</span>
+          <span className="bg-sky-400/20 text-sky-200 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span>⭐</span> 120 XP</span>
+        </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold">BrainBuddy AI</h3>
-            <p className="text-blue-100 text-sm">Your AI Study Companion</p>
+      {/* Radial progress top-right */}
+      <div className="fixed top-8 right-8 z-50">
+        <RadialProgress value={72} size={64} color="#38BDF8" icon={null} />
           </div>
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex-1 p-0 flex flex-col">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message) => (
-            <div
+      {/* AI Mood Radar */}
+      <AIMoodRadar emoji="😃" mood="Curious" color="#38BDF8" />
+      {/* Learning Insights Feed */}
+      <LearningInsights />
+      {/* Chat area */}
+      <div className="flex-1 w-full px-2 md:px-0 flex flex-col justify-end pt-40">
+        <div className="flex-1 overflow-y-auto px-0 md:px-8 pb-36 space-y-6">
+          {messages.map((message, idx) => (
+            <motion.div
               key={message.id}
-              className={`flex items-start space-x-3 ${
-                message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""
-              }`}
+              initial={{ y: 30, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.04, type: "spring", stiffness: 200, damping: 20 }}
+              className={`flex items-end ${message.sender === "user" ? "justify-end" : "justify-start"}`}
             >
-              <Avatar className="w-8 h-8 flex-shrink-0">
-                <AvatarFallback
-                  className={
-                    message.sender === "ai"
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                      : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                  }
+              {message.sender === "ai" && (
+                <motion.div
+                  className="absolute left-0 ml-8 -mt-8 z-30 flex items-center justify-center"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1 + idx * 0.04, type: "spring" }}
                 >
-                  {message.sender === "ai" ? (
-                    <Brain className="w-4 h-4" />
-                  ) : (
-                    user?.user_metadata?.full_name?.charAt(0) || "U"
-                  )}
-                </AvatarFallback>
-              </Avatar>
-
+                  <div className="w-12 h-12 bg-sky-400/80 rounded-full flex items-center justify-center shadow-lg animate-pulse border-4 border-white/30">
+                    <Brain className="w-7 h-7 text-white" />
+                  </div>
+                </motion.div>
+              )}
               <div
-                className={`max-w-md rounded-2xl p-4 ${
-                  message.sender === "ai"
-                    ? "bg-blue-50 text-gray-800"
-                    : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                }`}
+                className={`max-w-lg px-6 py-4 rounded-3xl text-base font-medium shadow-md transition-all duration-200 animate-pop-in whitespace-pre-wrap
+                  ${message.sender === "ai"
+                    ? "bg-white/90 text-gray-900 rounded-bl-none ml-20 drop-shadow-2xl"
+                    : "bg-sky-400/90 text-gray-900 rounded-br-none mr-2 drop-shadow-2xl"}
+                `}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <p className={`text-xs mt-2 ${message.sender === "ai" ? "text-gray-500" : "text-purple-100"}`}>
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+                {message.content}
+                <span className="block text-xs mt-1 text-gray-500 text-right">
+                  {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
               </div>
-            </div>
+            </motion.div>
           ))}
-
           {isLoading && (
-            <div className="flex items-start space-x-3">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                  <Brain className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="bg-blue-50 rounded-2xl p-4">
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                  <span className="text-sm text-gray-600">BrainBuddy is thinking...</span>
-                </div>
+            <motion.div
+              initial={{ y: 30, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="flex items-end justify-start"
+            >
+              <div className="max-w-lg px-6 py-4 rounded-3xl bg-white/90 text-gray-900 font-medium shadow-md animate-fade-in rounded-bl-none ml-20 drop-shadow-2xl">
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-sky-500" />
+                  BrainBuddy is thinking...
+                </span>
               </div>
-            </div>
+            </motion.div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
-
-        {/* Input */}
-        <div className="p-6 border-t border-gray-200">
-          <div className="flex space-x-2">
-            <textarea
+      </div>
+      {/* Goal Tracker Bar */}
+      <GoalTracker active={1} />
+      {/* Input area - fixed at bottom */}
+      <div className="fixed bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-black/60 via-[#1E293B]/40 to-transparent pb-4 pt-6 z-50">
+        <div className="w-full max-w-2xl px-4">
+          <ChatInput
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+            onChange={e => setInput(e.target.value)}
+            onSubmit={sendMessage}
+            loading={isLoading}
+            className="bg-white/90 rounded-full shadow-lg flex-row items-center px-4 py-2 border-0"
+            variant="unstyled"
+          >
+            <ChatInputTextArea
               placeholder="Ask me anything about your studies..."
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={1}
-              disabled={isLoading}
+              className="bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none px-0 py-2"
             />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 rounded-2xl"
-            >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </Button>
-          </div>
+            <ChatInputSubmit className="ml-2 bg-sky-400 hover:bg-sky-500 text-gray-900 ring-2 ring-[#38BDF8]/40" />
+          </ChatInput>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      {/* Command Palette */}
+      <CommandPalette />
+    </div>
   )
 }

@@ -1,14 +1,22 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X, Globe, BrainCog, FolderCode } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Brain } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { createClient } from '@/lib/supabase-client';
-import pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist';
+import { RadialProgress } from "@/components/ui/radial-progress";
+import { AIMoodRadar } from "@/components/ui/ai-mood-radar";
+import { LearningInsights } from "@/components/ui/learning-insights";
+import { GoalTracker } from "@/components/ui/goal-tracker";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { ChatMessageList } from "@/components/ui/chat-message-list";
+import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui/chat-bubble";
+import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input";
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
@@ -137,74 +145,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 Button.displayName = "Button";
-
-// VoiceRecorder Component
-interface VoiceRecorderProps {
-  isRecording: boolean;
-  onStartRecording: () => void;
-  onStopRecording: (duration: number) => void;
-  visualizerBars?: number;
-}
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
-  isRecording,
-  onStartRecording,
-  onStopRecording,
-  visualizerBars = 32,
-}) => {
-  const [time, setTime] = React.useState(0);
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  React.useEffect(() => {
-    if (isRecording) {
-      onStartRecording();
-      timerRef.current = setInterval(() => setTime((t) => t + 1), 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      onStopRecording(time);
-      setTime(0);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRecording]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center w-full transition-all duration-300 py-3",
-        isRecording ? "opacity-100" : "opacity-0 h-0"
-      )}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        <span className="font-mono text-sm text-white/80">{formatTime(time)}</span>
-      </div>
-      <div className="w-full h-10 flex items-center justify-center gap-0.5 px-4">
-        {[...Array(visualizerBars)].map((_, i) => (
-          <div
-            key={i}
-            className="w-0.5 rounded-full bg-white/50 animate-pulse"
-            style={{
-              height: `${Math.max(15, Math.random() * 100)}%`,
-              animationDelay: `${i * 0.05}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ImageViewDialog Component
 interface ImageViewDialogProps {
@@ -430,7 +370,6 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const [files, setFiles] = React.useState<File[]>([]);
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({});
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
-  const [isRecording, setIsRecording] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
   const [showThink, setShowThink] = React.useState(false);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
@@ -445,6 +384,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
       timestamp: new Date(),
     },
   ]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleToggleChange = (value: string) => {
     if (value === "search") {
@@ -574,77 +514,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
     }
   };
 
-  const handleStartRecording = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Speech recognition is not supported in this browser.');
-      return;
-    }
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    setIsRecording(true);
-    let finalTranscript = '';
-    recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-      setInput(finalTranscript + interimTranscript);
-    };
-    recognition.onerror = (event: any) => {
-      setIsRecording(false);
-    };
-    recognition.onend = () => {
-      setIsRecording(false);
-      // Leave the transcript in the input for user to review/edit
-    };
-    (window as any)._activeRecognition = recognition;
-    recognition.start();
-  };
-
-  const handleStopRecording = (duration: number) => {
-    if ((window as any)._activeRecognition) {
-      (window as any)._activeRecognition.stop();
-      (window as any)._activeRecognition = null;
-    }
-    setIsRecording(false);
-    // Do not send a message automatically
-  };
-
   const hasContent = input.trim() !== "" || files.length > 0;
-
-  useEffect(() => {
-    if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg.sender === "ai") {
-      // Remove emojis (unicode ranges)
-      let text = lastMsg.content.replace(/[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "");
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        const utter = new window.SpeechSynthesisUtterance(text);
-        // Try to select a female en-US voice
-        const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('woman'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('samantha'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('zira'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('linda'))
-          || voices.find(v => v.lang.startsWith('en'));
-        if (femaleVoice) utter.voice = femaleVoice;
-        utter.lang = "en-US";
-        utter.rate = 1;
-        utter.pitch = 1;
-        window.speechSynthesis.speak(utter);
-      }
-    }
-  }, [messages]);
 
   return (
     <>
@@ -655,16 +525,15 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
         onSubmit={handleSubmit}
         className={cn(
           "w-full bg-[#1F2023] border-[#444444] shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out",
-          isRecording && "border-red-500/70",
           className
         )}
-        disabled={isLoading || isRecording || uploading}
+        disabled={isLoading || uploading}
         ref={ref || promptBoxRef}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {files.length > 0 && !isRecording && (
+        {files.length > 0 && (
           <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">
             {files.map((file, index) => (
               <div key={index} className="relative group">
@@ -731,7 +600,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
         <div
           className={cn(
             "transition-all duration-300",
-            isRecording ? "h-0 overflow-hidden opacity-0" : "opacity-100"
+            isLoading ? "h-0 overflow-hidden opacity-0" : "opacity-100"
           )}
         >
           <PromptInputTextarea
@@ -746,43 +615,18 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
           />
         </div>
 
-        {isRecording && (
-          <div className="flex flex-col items-center justify-center w-full mb-2">
-            <div className="flex items-end gap-1 h-8">
-              {[...Array(24)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scaleY: 0.3 }}
-                  animate={{
-                    scaleY: [0.3, 1, 0.3],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.2,
-                    delay: i * 0.05,
-                    ease: "easeInOut",
-                  }}
-                  className="w-1 rounded bg-blue-400/80"
-                  style={{ height: '100%' }}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-blue-400 mt-1 animate-pulse">Listening...</span>
-          </div>
-        )}
-
         <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">
           <div
             className={cn(
               "flex items-center gap-1 transition-opacity duration-300",
-              isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
+              isLoading ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
             <PromptInputAction tooltip="Upload image">
               <button
                 onClick={() => uploadInputRef.current?.click()}
                 className="flex h-8 w-8 text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB]"
-                disabled={isRecording || uploading}
+                disabled={isLoading || uploading}
               >
                 <Paperclip className="h-5 w-5 transition-colors" />
                 <input
@@ -874,8 +718,6 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             tooltip={
               isLoading
                 ? "Stop generation"
-                : isRecording
-                ? "Stop recording"
                 : hasContent
                 ? "Send message"
                 : "Voice message"
@@ -886,28 +728,22 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               size="icon"
               className={cn(
                 "h-8 w-8 rounded-full transition-all duration-200",
-                isRecording
+                isLoading
                   ? "bg-transparent hover:bg-gray-600/30 text-red-500 hover:text-red-400"
                   : hasContent
                   ? "bg-white hover:bg-white/80 text-[#1F2023]"
                   : "bg-transparent hover:bg-gray-600/30 text-[#9CA3AF] hover:text-[#D1D5DB]"
               )}
               onClick={() => {
-                if (isRecording) handleStopRecording(0);
-                else if (hasContent) handleSubmit();
-                else handleStartRecording();
+                if (hasContent) handleSubmit();
               }}
               disabled={isLoading && !hasContent}
             >
               {isLoading ? (
                 <Square className="h-4 w-4 fill-[#1F2023] animate-pulse" />
-              ) : isRecording ? (
-                <StopCircle className="h-5 w-5 text-red-500" />
               ) : hasContent ? (
                 <ArrowUp className="h-4 w-4 text-[#1F2023]" />
-              ) : (
-                <Mic className="h-5 w-5 text-[#1F2023] transition-colors" />
-              )}
+              ) : null}
             </Button>
           </PromptInputAction>
         </PromptInputActions>
@@ -942,18 +778,29 @@ interface Message {
   timestamp: Date;
 }
 
-export function AIChatBox({ user }: { user?: any }) {
+export function AIChatBox({ user, mode }: { user?: any; mode?: 'teach' | 'chat' }) {
+  // Set initial message and system prompt based on mode
+  const initialTeachMsg: Message = {
+    id: "1",
+    content:
+      "Hi! I'm your AI student. Please explain a concept or topic to me, and I'll listen, ask questions, and summarize what I learn!",
+    sender: "ai",
+    timestamp: new Date(),
+  };
+  const initialChatMsg: Message = {
+    id: "1",
+    content:
+      "Hi there! I'm BrainBuddy, your AI study companion! 🎓 I'm here to help you learn, answer questions, and make studying fun! What would you like to learn about today? ✨",
+    sender: "ai",
+    timestamp: new Date(),
+  };
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content:
-        "Hi there! I'm BrainBuddy, your AI study companion! 🎓 I'm here to help you learn, answer questions, and make studying fun! What would you like to learn about today? ✨",
-      sender: "ai",
-      timestamp: new Date(),
-    },
+    mode === 'teach' ? initialTeachMsg : initialChatMsg
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -963,33 +810,8 @@ export function AIChatBox({ user }: { user?: any }) {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg.sender === "ai") {
-      // Remove emojis (unicode ranges)
-      let text = lastMsg.content.replace(/[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "");
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        const utter = new window.SpeechSynthesisUtterance(text);
-        // Try to select a female en-US voice
-        const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('woman'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('samantha'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('zira'))
-          || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('linda'))
-          || voices.find(v => v.lang.startsWith('en'));
-        if (femaleVoice) utter.voice = femaleVoice;
-        utter.lang = "en-US";
-        utter.rate = 1;
-        utter.pitch = 1;
-        window.speechSynthesis.speak(utter);
-      }
-    }
-  }, [messages]);
-
   const sendMessage = async (input: string, files?: File[]) => {
+    setError(null); // Clear previous error
     if (!input.trim() || isLoading) return;
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -1006,6 +828,7 @@ export function AIChatBox({ user }: { user?: any }) {
         body: JSON.stringify({
           message: userMessage.content,
           userId: user?.id,
+          mode: mode || 'chat',
         }),
       });
       const data = await response.json();
@@ -1014,6 +837,7 @@ export function AIChatBox({ user }: { user?: any }) {
         aiResponseText = data.response;
         if (aiResponseText.length > 200) aiResponseText = aiResponseText.slice(0, 200) + '...';
       } else {
+        setError("AI failed to respond. Please try again later.");
         console.error("Chat API error:", data.error);
       }
       const aiMessage: Message = {
@@ -1024,17 +848,21 @@ export function AIChatBox({ user }: { user?: any }) {
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      setError("Network error. Please check your connection and try again.");
       console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
-          "I'm having trouble connecting right now, but I'm here to help! Try asking me something about your studies! 😊",
+          mode === 'teach'
+            ? "I'm having trouble connecting right now, but I'm ready to learn from you! Try explaining a concept to me."
+            : "I'm having trouble connecting right now, but I'm here to help! Try asking me something about your studies! 😊",
         sender: "ai",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setInput(""); // Always clear input
     }
   };
 
@@ -1053,6 +881,91 @@ export function AIChatBox({ user }: { user?: any }) {
     return url.match(/\.(mp4|webm|ogg)$/i);
   }
 
+  if (mode === 'teach') {
+    // Professional chat UI for the new container with dark gradient background
+    return (
+      <div className="w-full h-full flex flex-col bg-transparent">
+        {/* Chat Messages Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+          <ChatMessageList>
+            {messages.map((message) => (
+              <ChatBubble
+                key={message.id}
+                variant={message.sender === "user" ? "sent" : "received"}
+              >
+                <ChatBubbleAvatar
+                  className="h-8 w-8 shrink-0"
+                  src={
+                    message.sender === "user"
+                      ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&q=80&crop=faces&fit=crop"
+                      : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&q=80&crop=faces&fit=crop"
+                  }
+                  fallback={message.sender === "user" ? "US" : "AI"}
+                />
+                <ChatBubbleMessage
+                  variant={message.sender === "user" ? "sent" : "received"}
+                >
+                  <div className={`${message.sender === "user" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : "bg-slate-800/90 text-gray-100"} rounded-2xl p-4 shadow-xl backdrop-blur-sm border ${message.sender === "user" ? "border-blue-400/30" : "border-slate-600/30"}`}>
+                    {message.content.replace(/\n\[Attachment\]\([^)]+\)/, "")}
+                    <span className={`block text-xs mt-1 text-right ${message.sender === "user" ? "text-blue-100" : "text-gray-400"}`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </ChatBubbleMessage>
+              </ChatBubble>
+            ))}
+            {isLoading && (
+              <ChatBubble variant="received">
+                <ChatBubbleAvatar
+                  className="h-8 w-8 shrink-0"
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&q=80&crop=faces&fit=crop"
+                  fallback="AI"
+                />
+                <ChatBubbleMessage isLoading />
+              </ChatBubble>
+            )}
+          </ChatMessageList>
+        </div>
+        
+        {/* Input Area */}
+        <div className="flex-shrink-0 p-6 border-t border-slate-700/50 bg-slate-900/30 backdrop-blur-md">
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              if (!input.trim()) return;
+              sendMessage(input);
+              setInput("");
+            }}
+            className="relative rounded-xl border border-slate-600/50 bg-slate-800/50 backdrop-blur-sm focus-within:ring-2 focus-within:ring-blue-400/50 focus-within:border-blue-400/50 p-2 shadow-lg"
+          >
+            <ChatInput
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onSubmit={() => {
+                if (!input.trim()) return;
+                sendMessage(input);
+                setInput("");
+              }}
+              className="min-h-12 resize-none rounded-lg bg-transparent border-0 p-3 shadow-none focus-visible:ring-0"
+            >
+              <ChatInputTextArea
+                placeholder="Ask me anything about your studies..."
+                className="bg-transparent border-0 text-white placeholder-slate-400"
+              />
+              <div className="flex items-center p-3 pt-0 justify-end">
+                <ChatInputSubmit className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg rounded-lg" />
+              </div>
+            </ChatInput>
+          </form>
+          {error && (
+            <div className="text-red-300 text-xs mt-2 text-center bg-red-500/20 rounded-lg p-2 backdrop-blur-sm border border-red-500/30">{error}</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Original Chat tab UI (light card layout)
   return (
     <div className="w-full h-[600px] flex items-center justify-center bg-[radial-gradient(125%_125%_at_50%_101%,rgba(245,87,2,1)_10.5%,rgba(245,120,2,1)_16%,rgba(245,140,2,1)_17.5%,rgba(245,170,100,1)_25%,rgba(238,174,202,1)_40%,rgba(202,179,214,1)_65%,rgba(148,201,233,1)_100%)]">
       <div className="w-full md:w-1/2 h-full flex items-center justify-center">
@@ -1068,7 +981,7 @@ export function AIChatBox({ user }: { user?: any }) {
           </div>
           <div className="flex-1 p-0 flex flex-col">
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto max-h-[400px] p-6 space-y-4">
               {messages.map((message) => {
                 const attachmentUrl = extractAttachment(message.content);
                 return (
