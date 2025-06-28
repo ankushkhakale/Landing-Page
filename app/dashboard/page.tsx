@@ -26,6 +26,7 @@ import {
   Crown,
   PlayCircle,
   CheckCircle,
+  Coins,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase-client"
@@ -38,6 +39,11 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationSystem } from "@/components/notification-system"
 import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
+import { TokenSystem } from "@/components/token-system"
+import { TokenBalanceWidget } from "@/components/token-balance-widget"
+import { useTokenNotifications } from "@/components/token-notification"
+import { TokenNotification } from "@/components/token-notification"
+import { TokenEarningDemo } from "@/components/token-earning-demo"
 
 interface UserProgress {
   xp_points: number
@@ -72,6 +78,7 @@ export default function DashboardPage() {
     oldLevel: number
     newLevel: number
   } | null>(null)
+  const { notifications, addNotification, removeNotification } = useTokenNotifications()
   const supabase = createClient()
 
   useEffect(() => {
@@ -190,6 +197,45 @@ export default function DashboardPage() {
         points_earned: points,
       })
 
+      // Award Brain Bits based on activity type
+      let brainBits = 0
+      let notificationMessage = ""
+      let notificationType: "earned" | "bonus" | "streak" | "achievement" = "earned"
+
+      switch (activityType) {
+        case "file_uploaded":
+          brainBits = 25
+          notificationMessage = "File uploaded successfully! +25 Brain Bits"
+          break
+        case "quiz_completed":
+          brainBits = 50
+          notificationMessage = "Quiz completed! +50 Brain Bits"
+          break
+        case "streak_milestone":
+          brainBits = 100
+          notificationMessage = "Streak milestone reached! +100 Brain Bits"
+          notificationType = "streak"
+          break
+        case "achievement_unlocked":
+          brainBits = 200
+          notificationMessage = "Achievement unlocked! +200 Brain Bits"
+          notificationType = "achievement"
+          break
+        case "daily_login":
+          brainBits = 10
+          notificationMessage = "Daily login bonus! +10 Brain Bits"
+          notificationType = "bonus"
+          break
+        default:
+          brainBits = Math.floor(points / 10) // Convert XP to Brain Bits
+          notificationMessage = `Activity completed! +${brainBits} Brain Bits`
+      }
+
+      // Show token notification
+      if (brainBits > 0) {
+        addNotification(notificationMessage, brainBits, notificationType)
+      }
+
       // Update streak
       const { data: newStreak } = await supabase.rpc("check_and_update_streak", { p_user_id: user.id })
 
@@ -229,23 +275,46 @@ export default function DashboardPage() {
   }
 
   const handleQuizComplete = async (score: number, totalQuestions: number, timeSpent: number) => {
-    const xpEarned = Math.floor((score / totalQuestions) * 50) // Base XP calculation
+    if (!user) return
 
-    // Record quiz completion activity
-    await recordActivity("quiz_completed", xpEarned)
+    try {
+      const accuracy = (score / totalQuestions) * 100
+      const basePoints = Math.floor(accuracy * 2) // Base points based on accuracy
+      const timeBonus = Math.max(0, 50 - Math.floor(timeSpent / 60)) // Time bonus (faster = more points)
+      const totalPoints = basePoints + timeBonus
 
-    // Create completion notification
-    await supabase.from("notifications").insert({
-      user_id: user?.id,
-      title: "Quiz Completed! 🎉",
-      message: `Great job! You scored ${score}/${totalQuestions} and earned ${xpEarned} XP!`,
-      type: "success",
-    })
+      // Record quiz completion
+      await recordActivity("quiz_completed", totalPoints)
 
-    // Refresh user data to get updated progress
-    await fetchUserData()
-    setSelectedQuiz(null)
-    setActiveTab("overview")
+      // Award additional Brain Bits based on performance
+      let performanceBonus = 0
+      if (accuracy >= 90) {
+        performanceBonus = 100 // Perfect score bonus
+        addNotification("Perfect score! +100 Brain Bits bonus!", 100, "achievement")
+      } else if (accuracy >= 80) {
+        performanceBonus = 50 // High score bonus
+        addNotification("Great performance! +50 Brain Bits bonus!", 50, "bonus")
+      } else if (accuracy >= 70) {
+        performanceBonus = 25 // Good score bonus
+        addNotification("Good job! +25 Brain Bits bonus!", 25, "earned")
+      }
+
+      // Update user progress
+      const { data: updatedProgress } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .single()
+
+      if (updatedProgress) {
+        setUserProgress(updatedProgress)
+      }
+
+      // Refresh quizzes
+      fetchUserData()
+    } catch (error) {
+      console.error("Error handling quiz completion:", error)
+    }
   }
 
   const startQuiz = (quiz: Quiz) => {
@@ -369,6 +438,14 @@ export default function DashboardPage() {
 
             {/* User Info & Actions */}
             <div className="flex items-center space-x-4">
+              {/* Token Balance Widget */}
+              <TokenBalanceWidget 
+                brainBits={1250}
+                level={8}
+                nextLevelProgress={75}
+                showDetails={false}
+              />
+
               {/* Streak Counter */}
               <div className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-100 to-red-100 px-4 py-2 rounded-full">
                 <Flame className={`w-5 h-5 ${streakDays > 0 ? "text-orange-500" : "text-gray-400"}`} />
@@ -545,6 +622,21 @@ export default function DashboardPage() {
               <span className="relative z-10">
                 <MessageCircle className="w-4 h-4 mr-2 inline" />
                 Chat
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "tokens" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("tokens")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <Coins className="w-4 h-4 mr-2 inline" />
+                Tokens
               </span>
             </button>
             
@@ -800,6 +892,14 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Tokens Tab */}
+          {activeTab === "tokens" && (
+            <div className="space-y-6">
+              <TokenSystem />
+              <TokenEarningDemo onEarnTokens={addNotification} />
+            </div>
+          )}
+
           {/* Profile Tab */}
           {activeTab === "profile" && (
             <div className="space-y-6">
@@ -808,6 +908,17 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Token Notifications */}
+      {notifications.map((notification) => (
+        <TokenNotification
+          key={notification.id}
+          message={notification.message}
+          tokens={notification.tokens}
+          type={notification.type}
+          onClose={() => removeNotification(notification.id)}
+        />
+      ))}
     </div>
   )
 }
