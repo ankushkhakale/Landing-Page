@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Brain,
@@ -287,15 +286,11 @@ export default function DashboardPage() {
       await recordActivity("quiz_completed", totalPoints)
 
       // Award additional Brain Bits based on performance
-      let performanceBonus = 0
       if (accuracy >= 90) {
-        performanceBonus = 100 // Perfect score bonus
         addNotification("Perfect score! +100 Brain Bits bonus!", 100, "achievement")
       } else if (accuracy >= 80) {
-        performanceBonus = 50 // High score bonus
         addNotification("Great performance! +50 Brain Bits bonus!", 50, "bonus")
       } else if (accuracy >= 70) {
-        performanceBonus = 25 // Good score bonus
         addNotification("Good job! +25 Brain Bits bonus!", 25, "earned")
       }
 
