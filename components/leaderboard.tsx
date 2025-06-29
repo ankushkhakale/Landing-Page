@@ -26,6 +26,7 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "full" }: LeaderboardProps) {
+
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
   const [currentUserRank, setCurrentUserRank] = useState<LeaderboardUser | null>(null)
   const [loading, setLoading] = useState(true)
@@ -101,7 +102,84 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
     }
   }
 
-  if (loading) {
+if (loading) {
+  return <p>Loading leaderboard...</p>;
+}
+
+// If variant is compact, show a simpler version (still using Ankush's UI style)
+if (variant === "compact") {
+  return (
+    <div className="space-y-2">
+      {leaderboard.slice(0, 5).map((user, index) => (
+        <motion.div
+          key={user.user_id}
+          custom={index}
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+          className="group"
+        >
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-colors duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="font-bold text-base w-8 text-center text-purple-500">
+                {user.rank_position}
+              </div>
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
+                  {user.username.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-semibold text-base text-black dark:text-white">{user.username}</p>
+              </div>
+              <div className="font-bold text-base text-purple-600">
+                {user.total_xp} <span className="text-xs text-muted-foreground">XP</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+// Default full leaderboard view (Ankush's full UI — add your detailed logic here as needed)
+return (
+  <div className="space-y-4">
+    {leaderboard.map((user, index) => (
+      <motion.div
+        key={user.user_id}
+        custom={index}
+        variants={listVariants}
+        initial="hidden"
+        animate="visible"
+        className="group"
+      >
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-colors duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="font-bold text-base w-8 text-center text-purple-500">
+              {user.rank_position}
+            </div>
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
+              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
+                {user.username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="font-semibold text-base text-black dark:text-white">{user.username}</p>
+            </div>
+            <div className="font-bold text-base text-purple-600">
+              {user.total_xp} <span className="text-xs text-muted-foreground">XP</span>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    ))}
+  </div>
+);
+
   return (
       <Card className="border-0 shadow-xl">
         <CardHeader>

@@ -116,6 +116,7 @@ export default function LandingPage() {
   )
 
   return (
+
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <NavBar items={navItems} logo={logo} rightContent={rightContent} />
@@ -139,33 +140,98 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="flex justify-start">
               <Badge className="px-4 py-2 bg-white text-blue-700 font-semibold shadow">
+
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1">
+      <NavBar items={navItems} logo={logo} rightContent={rightContent} className="backdrop-blur-xl" />
+
+      <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-pink-950/20" />
+        <div className="relative z-10 container mx-auto max-w-6xl">
+          <div className="text-center space-y-8">
+            <div className="flex justify-center">
+              <Badge className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200 dark:from-purple-900/50 dark:to-pink-900/50 dark:text-purple-300 dark:border-purple-700">
+
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Learning for Kids
               </Badge>
             </div>
 
-            {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight text-left">
-                <span className="bg-gradient-to-r from-pink-400 via-yellow-400 via-green-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg">
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight"
+                >
                   Learn Like You Play
-                </span>
-              </h1>
+                </GradientText>
             </div>
-
-            {/* Subtitle */}
-            <div className="max-w-4xl">
-              <p className="text-lg sm:text-xl md:text-2xl font-normal text-black leading-relaxed text-left drop-shadow-[0_2px_6px_rgba(255,255,255,0.8)]">
-                Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
+            <div className="max-w-4xl mx-auto">
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed">
+                Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting
+                adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
               </p>
             </div>
-
-            {/* CTA Button */}
-            <div className="pt-4 flex justify-start">
+            <div className="pt-4">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 text-xl font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
                 onClick={handleGetStarted}
+              >
+                <Zap className="w-6 h-6 mr-3" />
+                {user ? "Go to Dashboard" : "Start Learning Now"}
+              </Button>
+            </div>
+            <div className="pt-8">
+              <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  <span>10,000+ Happy Students</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span>4.9/5 Parent Rating</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-green-500" />
+                  <span>100% Safe & Secure</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute top-20 left-10 w-20 h-20 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-800"></div>
+        <div className="absolute top-40 right-10 w-20 h-20 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
+        <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
+      </section>
+
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+            <div className="space-y-3">
+              <GradientText
+                colors={["#ffaa40", "#9c40ff", "#ffaa40"]}
+                className="text-4xl md:text-5xl font-bold"
+              >
+                Kids Obsessed ? Yep, it's BrainBuddy
+              </GradientText>
+              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              We've packed everything your child needs to fall in love with learning
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <EnhancedFeatureCard
+                icon={BrainCircuit}
+                title="Learning That Loves Them Back ❤"
+                description="BrainBuddy doesn't just teach—it connects. Like the world's most patient tutor, it senses when your child is stuck, bored, or buzzing with curiosity… and adapts in real time."
+                gradientFrom="from-rose-500"
+                gradientTo="to-pink-500"
+                iconColor="text-rose-500"
+                glareColor="#ff6b9d"
+                shinySpeed={3}
+                cuteElements={["💖", "😊", "🤗"]}
+
               >
                 <Zap className="w-6 h-6 mr-3" />
                 {user ? "Go to Dashboard" : "Start Learning Now"}
@@ -487,6 +553,7 @@ export default function LandingPage() {
                     Grammar Help
                   </Badge>
                 </div>
+
               </CardContent>
             </Card>
           </div>
@@ -567,6 +634,7 @@ export default function LandingPage() {
               BrainBuddy solves the biggest problems in traditional learning
             </p>
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
             <div className="space-y-8">

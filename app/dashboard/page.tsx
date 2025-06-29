@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Brain,
@@ -30,6 +29,7 @@ import {
   Mail,
   Phone,
   Sparkles,
+  Coins,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase-client"
@@ -44,6 +44,11 @@ import { Leaderboard } from "@/components/leaderboard"
 import { EditableProfile } from "@/components/editable-profile"
 import { SidebarTabs } from "@/components/ui/SidebarTabs"
 import { NLPTools } from "@/components/nlp-tools"
+import { TokenSystem } from "@/components/token-system"
+import { TokenBalanceWidget } from "@/components/token-balance-widget"
+import { useTokenNotifications } from "@/components/token-notification"
+import { TokenNotification } from "@/components/token-notification"
+import { TokenEarningDemo } from "@/components/token-earning-demo"
 
 interface UserProgress {
   xp_points: number
@@ -81,6 +86,7 @@ export default function DashboardPage() {
     oldLevel: number
     newLevel: number
   } | null>(null)
+  const { notifications, addNotification, removeNotification } = useTokenNotifications()
   const supabase = createClient()
 
   const tabItems = [
@@ -212,6 +218,45 @@ export default function DashboardPage() {
         points_earned: points,
       })
 
+      // Award Brain Bits based on activity type
+      let brainBits = 0
+      let notificationMessage = ""
+      let notificationType: "earned" | "bonus" | "streak" | "achievement" = "earned"
+
+      switch (activityType) {
+        case "file_uploaded":
+          brainBits = 25
+          notificationMessage = "File uploaded successfully! +25 Brain Bits"
+          break
+        case "quiz_completed":
+          brainBits = 50
+          notificationMessage = "Quiz completed! +50 Brain Bits"
+          break
+        case "streak_milestone":
+          brainBits = 100
+          notificationMessage = "Streak milestone reached! +100 Brain Bits"
+          notificationType = "streak"
+          break
+        case "achievement_unlocked":
+          brainBits = 200
+          notificationMessage = "Achievement unlocked! +200 Brain Bits"
+          notificationType = "achievement"
+          break
+        case "daily_login":
+          brainBits = 10
+          notificationMessage = "Daily login bonus! +10 Brain Bits"
+          notificationType = "bonus"
+          break
+        default:
+          brainBits = Math.floor(points / 10) // Convert XP to Brain Bits
+          notificationMessage = `Activity completed! +${brainBits} Brain Bits`
+      }
+
+      // Show token notification
+      if (brainBits > 0) {
+        addNotification(notificationMessage, brainBits, notificationType)
+      }
+
       // Update streak
       const { data: newStreak } = await supabase.rpc("check_and_update_streak", { p_user_id: user.id })
 
@@ -251,6 +296,7 @@ export default function DashboardPage() {
   }
 
   const handleQuizComplete = async (score: number, totalQuestions: number, timeSpent: number) => {
+
     const xpEarned = Math.floor((score / totalQuestions) * 50) // Base XP calculation
 
     // Record quiz completion activity
@@ -260,7 +306,7 @@ export default function DashboardPage() {
     await supabase.from("notifications").insert({
       user_id: user?.id,
       title: "Quiz Completed! 🎉",
-      message: `Great job! You scored ${score}/${totalQuestions} and earned ${xpEarned} XP!`,
+      message: `Great job! You scored ${score}/${totalQuestions}`,
       type: "success",
     })
 
@@ -269,6 +315,7 @@ export default function DashboardPage() {
     // Do NOT close the quiz or reset selectedQuiz here. Let the user close it from the review/results UI.
     // setSelectedQuiz(null)
     // setActiveTab("overview")
+
   }
 
   const startQuiz = (quiz: Quiz) => {
@@ -378,6 +425,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
+
             {/* Right: Badges, Theme, Notifications, User */}
             <div className="flex items-center gap-3">
               {/* Streak Badge */}
@@ -385,6 +433,7 @@ export default function DashboardPage() {
                 <Flame className="w-5 h-5 text-orange-500" />
                 <span className="font-bold">{streakDays}</span>
                 <span className="text-xs">day streak</span>
+
               </div>
               {/* Level Badge */}
               <div className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-4 py-1 shadow text-white font-bold text-sm gap-1">
@@ -502,6 +551,138 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+
+        {/* Custom Tab Buttons */}
+        <div className="mb-6">
+          <div className="flex justify-between">
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "overview" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("overview")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <BarChart3 className="w-4 h-4 mr-2 inline" />
+                Overview
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "learn" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("learn")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <BookOpen className="w-4 h-4 mr-2 inline" />
+                Learn
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "progress" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("progress")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <TrendingUp className="w-4 h-4 mr-2 inline" />
+                Progress
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "achievements" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("achievements")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <Award className="w-4 h-4 mr-2 inline" />
+                Achievements
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "leaderboard" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("leaderboard")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <Crown className="w-4 h-4 mr-2 inline" />
+                Leaderboard
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "chat" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("chat")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <MessageCircle className="w-4 h-4 mr-2 inline" />
+                Chat
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "tokens" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("tokens")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <Coins className="w-4 h-4 mr-2 inline" />
+                Tokens
+              </span>
+            </button>
+            
+            <button
+              className={`px-6 py-3 rounded-full text-purple-700 dark:text-purple-400 border-2 border-purple-500 dark:border-purple-400 bg-transparent font-semibold transition-all duration-100 relative overflow-hidden hover:scale-110 active:scale-100 hover:text-gray-900 dark:hover:text-white hover:shadow-[0_0px_20px_rgba(124,58,237,0.4)] ${
+                activeTab === "profile" 
+                  ? "text-gray-900 dark:text-white bg-purple-500 dark:bg-purple-500 shadow-[0_0px_20px_rgba(124,58,237,0.4)]" 
+                  : ""
+              }`}
+              onClick={() => setActiveTab("profile")}
+            >
+              <div className="absolute inset-0 bg-purple-500 dark:bg-purple-500 rounded-full scale-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.320,1)] hover:scale-[3] -z-10"></div>
+              <span className="relative z-10">
+                <User className="w-4 h-4 mr-2 inline" />
+                Profile
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Main Dashboard Tabs */}
+        <div className="space-y-6">
+          {/* Overview Tab */}
+          {activeTab === "overview" && (
+            <div className="space-y-6">
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -753,6 +934,14 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Tokens Tab */}
+          {activeTab === "tokens" && (
+            <div className="space-y-6">
+              <TokenSystem />
+              <TokenEarningDemo onEarnTokens={addNotification} />
+            </div>
+          )}
+
           {/* Profile Tab */}
           {activeTab === "profile" && (
             <div className="space-y-6">
@@ -837,6 +1026,17 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Token Notifications */}
+      {notifications.map((notification) => (
+        <TokenNotification
+          key={notification.id}
+          message={notification.message}
+          tokens={notification.tokens}
+          type={notification.type}
+          onClose={() => removeNotification(notification.id)}
+        />
+      ))}
     </div>
   )
 }

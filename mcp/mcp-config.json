@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "landing-page-mcp-server",
+    "version": "1.0.0",
+    "description": "MCP Server for Landing Page Project Analysis"
+  },
+  "tools": {
+    "get_project_info": {
+      "description": "Get comprehensive information about the landing page project",
+      "category": "project"
+    },
+    "analyze_code": {
+      "description": "Analyze specific files in the project for content and structure",
+      "category": "analysis"
+    },
+    "list_project_files": {
+      "description": "List all files in the project with a tree structure",
+      "category": "navigation"
+    }
+  },
+  "settings": {
+    "maxFileSize": 1048576,
+    "allowedFileTypes": [".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".css", ".html"],
+    "projectRoot": "../"
+  }
+} 

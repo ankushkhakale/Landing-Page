@@ -1,0 +1,26 @@
+{
+  "name": "mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol Server",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node --esm src/index.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  },
+  "keywords": ["mcp", "model-context-protocol", "ai"],
+  "author": "",
+  "license": "MIT"
+} 
