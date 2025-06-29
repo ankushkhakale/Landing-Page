@@ -3,6 +3,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null
 
+function withTimeout(promise: Promise<any>, ms: number) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Gemini API timed out')), ms)),
+  ]);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { text, difficulty = "medium", questionCount = 15, userId } = await request.json()
@@ -10,16 +17,24 @@ export async function POST(request: NextRequest) {
     if (!text || !userId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
+    if (typeof text !== 'string' || text.trim().length < 50) {
+      return NextResponse.json({ error: "Transcript is empty or too short for quiz generation." }, { status: 400 })
+    }
 
     let result
-
-    if (genAI) {
+    let rawGeminiResponse = ''
+    let prompt = ''
+    try {
+      let inputText = text
+      if (inputText.length > 8000) inputText = inputText.slice(0, 8000)
+      if (!genAI) {
+        return NextResponse.json({ error: "Gemini API key not set." }, { status: 500 });
+      }
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-      const prompt = `
+      prompt = `
         Create a ${difficulty} difficulty quiz with exactly ${questionCount} multiple choice questions based on the following content:
         
-        ${text}
+        ${inputText}
         
         Format the response as a JSON object with this structure:
         {
@@ -36,36 +51,25 @@ export async function POST(request: NextRequest) {
         
         Make sure questions are educational, age-appropriate for students under 15, and test understanding of key concepts.
       `
-
-      const aiResult = await model.generateContent(prompt)
+      const aiResult = await withTimeout(model.generateContent(prompt), 30000)
       const response = await aiResult.response
-      const responseText = response.text()
-
+      rawGeminiResponse = await response.text()
       // Clean up the response to extract JSON
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      const jsonMatch = rawGeminiResponse.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
-        result = JSON.parse(jsonMatch[0])
+        try {
+          result = JSON.parse(jsonMatch[0])
+        } catch (err) {
+          console.error('Gemini quiz JSON parse error:', err, 'Raw response:', rawGeminiResponse)
+          throw new Error('Gemini returned invalid JSON for quiz.')
+        }
       } else {
         throw new Error("Invalid AI response format")
       }
-    } else {
-      // Fallback quiz when no API key
-      result = {
-        title: `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Quiz`,
-        questions: Array.from({ length: Math.min(questionCount, 5) }, (_, i) => ({
-          question: `Sample question ${i + 1} about the content (${difficulty} level)`,
-          options: [
-            `This is option A for question ${i + 1}`,
-            `This is option B for question ${i + 1}`,
-            `This is option C for question ${i + 1}`,
-            `This is option D for question ${i + 1}`,
-          ],
-          correctAnswer: i % 4,
-          explanation: `This is a sample explanation for question ${i + 1}. In a real scenario, this would explain why the correct answer is right based on your content.`,
-        })),
-      }
+    } catch (err) {
+      console.error("Gemini quiz error:", err, "Transcript:", text, "Prompt:", prompt, "Raw response:", rawGeminiResponse)
+      return NextResponse.json({ error: "Failed to generate quiz from Gemini.", details: err instanceof Error ? err.message : String(err) }, { status: 500 })
     }
-
     return NextResponse.json({ success: true, quiz: result })
   } catch (error) {
     console.error("Error generating quiz:", error)

@@ -134,3 +134,40 @@ CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE U
 
 CREATE POLICY "Users can view own activities" ON user_activities FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own activities" ON user_activities FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to update their own profile
+CREATE POLICY "Users can update own profile"
+ON profiles
+FOR UPDATE
+USING (auth.uid() = id);
+
+-- Allow users to upsert (insert/update/select) their own leaderboard row
+CREATE POLICY "Users can upsert own leaderboard"
+ON leaderboards
+FOR ALL
+USING (auth.uid() = user_id);
+
+-- Allow users to insert notifications for themselves
+CREATE POLICY "Users can insert own notifications"
+ON notifications
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to view their own notifications (optional, but recommended)
+CREATE POLICY "Users can view own notifications"
+ON notifications
+FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Allow public read access to avatars
+create policy "Public read" on storage.objects
+for select
+using (bucket_id = 'avatars');
+
+-- Allow authenticated users to upload files to the avatars bucket
+create policy "Authenticated users can upload avatars"
+on storage.objects
+for insert
+with check (
+  bucket_id = 'avatars' AND auth.role() = 'authenticated'
+);

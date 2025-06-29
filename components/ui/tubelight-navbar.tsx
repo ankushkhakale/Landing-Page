@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMood } from "@/contexts/mood-context"
 import { Leaderboard } from "@/components/leaderboard"
 
 interface NavItem {
@@ -24,6 +25,7 @@ interface NavBarProps {
 export function NavBar({ items, className, logo, rightContent }: NavBarProps) {
   const [activeTab, setActiveTab] = useState(items[0]?.name || "")
   const [isMobile, setIsMobile] = useState(false)
+  const { moodEmoji, moodLabel } = useMood()
 
   useEffect(() => {
     const handleResize = () => {
@@ -93,7 +95,9 @@ export function NavBar({ items, className, logo, rightContent }: NavBarProps) {
         </div>
 
         {/* Right Content */}
-        {rightContent && <div className="flex items-center">{rightContent}</div>}
+        <div className="flex items-center">
+          {rightContent}
+        </div>
       </div>
     </div>
   )
