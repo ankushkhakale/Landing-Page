@@ -34,18 +34,42 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
     avatar_url: user?.user_metadata?.avatar_url || "",
   })
 
-  const refreshUser = async () => {
-    const { data } = await supabase.auth.getUser();
-    if (data?.user) {
-      // This will not update the context, but you can force a reload or setFormData here if needed
-      setFormData({
-        full_name: data.user.user_metadata?.full_name || "",
-        username: data.user.user_metadata?.username || data.user.user_metadata?.full_name || "",
-        contact_no: data.user.user_metadata?.contact_no || "",
-        grade_level: data.user.user_metadata?.grade_level || "",
-        date_of_birth: data.user.user_metadata?.date_of_birth || "",
-        avatar_url: data.user.user_metadata?.avatar_url || "",
-      });
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user) return
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split(".").pop()
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`
+      const filePath = `avatars/${fileName}`
+
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file)
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath)
+
+      setFormData((prev) => ({ ...prev, avatar_url: publicUrl }))
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error uploading avatar:", error.message, error.stack)
+      } else if (typeof error === "object" && error !== null) {
+        console.error("Error uploading avatar:", JSON.stringify(error))
+      } else {
+        console.error("Error uploading avatar:", error)
+      }
+      alert("Error uploading avatar. Please try again.")
+    } finally {
+      setUploading(false)
     }
   };
 
@@ -60,6 +84,25 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
                 {formData.full_name?.charAt(0) || formData.username?.charAt(0) || "U"}
               </AvatarFallback>
             </Avatar>
+
+            {isEditing && (
+              <Button
+                size="sm"
+                className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <div className="loader-small">
+                    <span></span>
+                  </div>
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
           </div>
           <h3 className="text-xl font-bold mb-2">{formData.full_name || formData.username || "Learner"}</h3>
           <p className="text-muted-foreground mb-4">{user?.email}</p>
@@ -69,7 +112,31 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold">Profile Settings</CardTitle>
-            <Button onClick={() => setDialogOpen(true)}>Edit Profile</Button>
+
+            {!isEditing ? (
+              <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+            ) : (
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={handleCancel} disabled={loading}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                >
+                  {loading ? (
+                    <div className="loader-small mr-2">
+                      <span></span>
+                    </div>
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Save Changes
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

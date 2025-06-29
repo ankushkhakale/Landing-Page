@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Brain, Send, Loader2 } from "lucide-react"
+import { Brain, Send } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import {
   ChatInput,
@@ -25,6 +25,15 @@ interface Message {
   sender: "user" | "ai"
   timestamp: Date
 }
+
+// Add a typing indicator component
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 ml-2">
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0s]"></span>
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+    <span className="block w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+  </div>
+);
 
 export function AIChat() {
   const [messages, setMessages] = useState<Message[]>([
@@ -188,6 +197,7 @@ export function AIChat() {
                   <Loader2 className="w-4 h-4 animate-spin text-sky-500" />
                   BrainBuddy is thinking...
                 </span>
+
               </div>
             </motion.div>
           )}
@@ -213,6 +223,35 @@ export function AIChat() {
             />
             <ChatInputSubmit className="ml-2 bg-sky-400 hover:bg-sky-500 text-gray-900 ring-2 ring-[#38BDF8]/40" />
           </ChatInput>
+
+        {/* Input */}
+        <div className="p-4 bg-transparent flex items-end gap-2 sticky bottom-0">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything about your studies..."
+            className="flex-1 px-5 py-3 border-2 border-blue-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/80 dark:bg-blue-950/60 text-base resize-none shadow-sm transition-all"
+            rows={1}
+            disabled={isLoading}
+            style={{ minHeight: 48, maxHeight: 120 }}
+          />
+          <Button
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 py-3 rounded-full shadow-lg text-white text-xl flex items-center justify-center transition-all duration-200"
+            style={{ minWidth: 56, minHeight: 56 }}
+            aria-label="Send message"
+          >
+            {isLoading ? (
+              <div className="loader-small">
+                <span></span>
+              </div>
+            ) : (
+              <Send className="w-6 h-6" />
+            )}
+          </Button>
+
         </div>
       </div>
       {/* Command Palette */}

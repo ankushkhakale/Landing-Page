@@ -102,7 +102,7 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
   }
 
   if (loading) {
-    return (
+  return (
       <Card className="border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -140,11 +140,11 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
               <CardContent className="p-4 text-center">
                 <div className="flex justify-center mb-2">{getRankIcon(user.rank_position)}</div>
                 <Avatar className="w-12 h-12 mx-auto mb-2">
-                  <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
+                <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
                   <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                    {user.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                  {user.username.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
                 <p className="font-semibold text-sm">{user.username}</p>
                 <div className="flex items-center justify-center space-x-2 mt-2">
                   <Badge variant="secondary" className="text-xs">
@@ -154,7 +154,7 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
                   <Badge variant="secondary" className="text-xs">
                     L{user.current_level}
                   </Badge>
-                </div>
+              </div>
               </CardContent>
             </Card>
           ))}
@@ -186,14 +186,14 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
               <Badge className={`px-2 py-1 text-xs ${getRankBadgeColor(user.rank_position)}`}>
                 #{user.rank_position}
               </Badge>
-            </div>
+                  </div>
 
             <Avatar className="w-10 h-10">
-              <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
+                    <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
               <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                {user.username.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+                      {user.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
 
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground truncate">{user.username}</p>
@@ -253,16 +253,16 @@ export function Leaderboard({ limit = 10, showCurrentUser = true, variant = "ful
                     <div className="flex items-center space-x-1">
                       <Flame className="w-3 h-3 text-orange-500" />
                       <span className="text-xs text-muted-foreground">{currentUserRank.streak_days} days</span>
-                    </div>
                   </div>
-                </div>
+                  </div>
+        </div>
 
                 <div className="text-right">
                   <p className="text-sm font-medium text-foreground">{currentUserRank.quizzes_completed}</p>
                   <p className="text-xs text-muted-foreground">quizzes</p>
                 </div>
               </div>
-            </div>
+      </div>
           </>
         )}
       </CardContent>

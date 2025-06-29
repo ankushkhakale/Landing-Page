@@ -75,6 +75,7 @@ export default function DashboardPage() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<
+
     "overview" | "learn" | "video-learn" | "ai-learn" | "practice" | "progress" | "achievements" | "leaderboard" | "chat" | "profile" | "more" | "help" | "faq" | "nlp-tools"
   >("overview")
   const [moreSubTab, setMoreSubTab] = useState<"help" | "faq">("help")
@@ -94,6 +95,8 @@ export default function DashboardPage() {
     { key: "ai-learn", label: "AI Learn", icon: Award },
     { key: "practice", label: "Practice", icon: PlayCircle },
     { key: "nlp-tools", label: "NLP Tools", icon: Sparkles },
+    { key: "practice", label: "Practice", icon: PlayCircle },
+
     { key: "progress", label: "Progress", icon: TrendingUp },
     { key: "achievements", label: "Achievements", icon: Award },
     { key: "leaderboard", label: "Leaderboard", icon: Crown },
@@ -272,6 +275,11 @@ export default function DashboardPage() {
 
     // Refresh user data to get updated progress
     await fetchUserData()
+
+    // Do NOT close the quiz or reset selectedQuiz here. Let the user close it from the review/results UI.
+    // setSelectedQuiz(null)
+    // setActiveTab("overview")
+
   }
 
   const startQuiz = (quiz: Quiz) => {
@@ -372,7 +380,8 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-11 h-11 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
                 <Brain className="w-6 h-6 text-white" />
-        </div>
+              </div>
+
               <div className="flex flex-col min-w-0">
                 <span className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
                   BrainBuddy
@@ -408,11 +417,11 @@ export default function DashboardPage() {
               </div>
               {/* Theme Toggle */}
               <div className="flex items-center">
-              <ThemeToggle />
+                <ThemeToggle />
               </div>
               {/* Notifications */}
               <div className="flex items-center">
-              <NotificationSystem />
+                <NotificationSystem />
               </div>
               {/* User Info */}
               <div className="flex items-center gap-3">
@@ -449,27 +458,27 @@ export default function DashboardPage() {
           }}
         />
         <div className="flex-1 bg-background min-h-0 overflow-auto">
-          {/* Level Up Notification */}
-          {levelUpNotification?.show && (
-            <div className="fixed top-4 right-4 z-50 animate-bounce">
-              <Card className="border-0 shadow-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                <CardContent className="p-6 text-center">
-                  <Crown className="w-12 h-12 mx-auto mb-2" />
-                  <h3 className="text-xl font-bold">Level Up!</h3>
-                  <p>
-                    Level {levelUpNotification.oldLevel} → {levelUpNotification.newLevel}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    className="text-white hover:bg-white/20 mt-2"
-                    onClick={() => setLevelUpNotification(null)}
-                  >
-                    Awesome! 🎉
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+      {/* Level Up Notification */}
+      {levelUpNotification?.show && (
+        <div className="fixed top-4 right-4 z-50 animate-bounce">
+          <Card className="border-0 shadow-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+            <CardContent className="p-6 text-center">
+              <Crown className="w-12 h-12 mx-auto mb-2" />
+              <h3 className="text-xl font-bold">Level Up!</h3>
+              <p>
+                Level {levelUpNotification.oldLevel} → {levelUpNotification.newLevel}
+              </p>
+              <Button
+                variant="ghost"
+                className="text-white hover:bg-white/20 mt-2"
+                onClick={() => setLevelUpNotification(null)}
+              >
+                Awesome! 🎉
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
           <div className="container mx-auto px-4 pt-4 pb-8">
             {/* Main Dashboard Tabs */}
@@ -477,30 +486,31 @@ export default function DashboardPage() {
               {/* Overview Tab */}
               {activeTab === "overview" && (
                 <div className="space-y-6">
-                  {/* Welcome Section */}
-                  <div className="mb-6 pt-6 pb-6">
-                    <div className="text-left space-y-6">
-                      <div className="space-y-3">
-                        <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 🎉
-            </h1>
-                        <p className="text-lg text-muted-foreground">Ready to continue your learning adventure?</p>
-                      </div>
+
+        {/* Welcome Section */}
+        <div className="mb-6 pt-6 pb-6">
+          <div className="text-left space-y-6">
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+                Welcome back, {user?.user_metadata?.full_name?.split(" ")[0] || "Learner"}! 🎉
+              </h1>
+              <p className="text-lg text-muted-foreground">Ready to continue your learning adventure?</p>
+            </div>
             {/* XP Progress Bar */}
-                      <div className="bg-muted rounded-full p-1 max-w-md">
-                        <div className="bg-background rounded-full px-4 py-2 flex items-center justify-between text-sm">
-                          <span className="text-foreground font-medium">Level {currentLevel}</span>
+            <div className="bg-muted rounded-full p-1 max-w-md">
+              <div className="bg-background rounded-full px-4 py-2 flex items-center justify-between text-sm">
+                <span className="text-foreground font-medium">Level {currentLevel}</span>
                 <div className="flex-1 mx-4">
-                            <Progress value={levelProgress} className="h-2 bg-muted" />
+                  <Progress value={levelProgress} className="h-2 bg-muted" />
                 </div>
-                          <span className="text-foreground font-medium text-xs">
+                <span className="text-foreground font-medium text-xs">
                   {xpNeeded > 0 ? `${xpNeeded} XP to Level ${currentLevel + 1}` : "Max Level!"}
                 </span>
               </div>
             </div>
-                      <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap gap-4 pt-2">
               <Button
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold"
                 onClick={() => setActiveTab("learn")}
               >
                 <PlayCircle className="w-5 h-5 mr-2" />
@@ -508,12 +518,13 @@ export default function DashboardPage() {
               </Button>
               <Button
                 variant="outline"
-                          className="border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-300 dark:text-purple-400 dark:hover:bg-purple-950"
+                className="border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-300 dark:text-purple-400 dark:hover:bg-purple-950"
                 onClick={() => setActiveTab("achievements")}
               >
                 <Trophy className="w-5 h-5 mr-2" />
                 View Achievements
               </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -270,21 +270,21 @@ export function FileUpload({ onFileProcessed, difficulty, contentType }: FileUpl
       {/* Drop Zone */}
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all ${
-          isDragActive
-            ? "border-purple-400 bg-purple-50"
-            : "border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50"
-        }`}
+        className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all
+          ${isDragActive
+            ? "border-blue-400 bg-blue-50 dark:bg-indigo-900/40"
+            : "border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900 dark:to-indigo-900"}
+        `}
       >
         <input {...getInputProps()} />
-        <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
-          <Upload className="w-10 h-10 text-white" />
+        <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-cyan-400 dark:from-blue-600 dark:to-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <Upload className="w-10 h-10 text-white drop-shadow-lg" />
         </div>
-        <h3 className="text-xl font-bold mb-2 text-gray-800">
+        <h3 className="text-xl font-bold mb-2 text-blue-700 dark:text-cyan-200">
           {isDragActive ? "Drop files here!" : "Drag & Drop Your Files"}
         </h3>
-        <p className="text-gray-600 mb-6">Support for PDFs, images, videos, and text files (Max 50MB)</p>
-        <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold px-8">
+        <p className="text-blue-500 dark:text-cyan-300 mb-6">Support for PDFs, images, videos, and text files (Max 50MB)</p>
+        <Button className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-bold px-8 shadow">
           Choose Files
         </Button>
       </div>
