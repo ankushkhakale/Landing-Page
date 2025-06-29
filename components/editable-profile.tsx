@@ -21,6 +21,7 @@ interface EditableProfileProps {
 export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -115,6 +116,8 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
         userId={user?.id || "anon"}
         onSave={async (values) => {
           if (!user) return;
+          setLoading(true);
+          setError(null);
           try {
             // Only send allowed fields to auth.updateUser (metadata)
             const { error: authError } = await supabase.auth.updateUser({
@@ -128,8 +131,7 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
               },
             });
             if (authError) {
-              console.error('auth.updateUser error:', authError.message || authError);
-              alert(`Auth error: ${authError.message || authError}`);
+              setError(`Auth error: ${authError.message || authError}`);
               return;
             }
             // Upsert to profiles table (ensure all columns exist in schema)
@@ -144,8 +146,7 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
               updated_at: new Date().toISOString(),
             });
             if (profileError) {
-              console.error('profiles.upsert error:', profileError.message || profileError);
-              alert(`Profile error: ${profileError.message || profileError}`);
+              setError(`Profile error: ${profileError.message || profileError}`);
               return;
             }
             // Upsert to leaderboards table
@@ -155,8 +156,7 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
               avatar_url: values.avatar_url || "",
             });
             if (leaderboardError) {
-              console.error('leaderboards.upsert error:', leaderboardError.message || leaderboardError);
-              alert(`Leaderboard error: ${leaderboardError.message || leaderboardError}`);
+              setError(`Leaderboard error: ${leaderboardError.message || leaderboardError}`);
               return;
             }
             // Insert notification
@@ -167,11 +167,9 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
               type: "success",
             });
             if (notificationError) {
-              console.error('notifications.insert error:', notificationError.message || notificationError);
-              alert(`Notification error: ${notificationError.message || notificationError}`);
+              setError(`Notification error: ${notificationError.message || notificationError}`);
               return;
             }
-            onProfileUpdate?.();
             setFormData({
               full_name: values.full_name,
               username: values.username,
@@ -181,12 +179,15 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
               avatar_url: values.avatar_url || "",
             });
             await refreshUser();
+            onProfileUpdate?.();
           } catch (error) {
-            console.error('Unexpected error:', error);
-            alert(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+            setError(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+          } finally {
+            setLoading(false);
           }
         }}
       />
+      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
     </div>
   )
 }

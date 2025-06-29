@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
@@ -16,11 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImagePlus } from "lucide-react";
 import { createClient } from "@/lib/supabase-client";
-// @ts-ignore
-// eslint-disable-next-line
-import debounce from "lodash.debounce";
-
-declare module 'lodash.debounce';
 
 interface ProfileDialogProps {
   open: boolean;
@@ -50,6 +46,8 @@ export default function RuixenDialog({ open, onOpenChange, initialValues, onSave
   const [form, setForm] = useState(initialValues);
   const [avatarUrl, setAvatarUrl] = useState(initialValues.avatar_url || "https://github.com/shadcn.png");
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -72,19 +70,15 @@ export default function RuixenDialog({ open, onOpenChange, initialValues, onSave
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    // Show local preview immediately
-    const localUrl = URL.createObjectURL(file);
-    setAvatarUrl(localUrl);
-    setForm((prev) => ({ ...prev, avatar_url: localUrl }));
-
     setUploading(true);
+    setError(null);
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
       const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
       if (uploadError) {
-        alert('File upload error: ' + uploadError.message);
+        setError('File upload error: ' + uploadError.message);
         setUploading(false);
         return;
       }
@@ -92,15 +86,23 @@ export default function RuixenDialog({ open, onOpenChange, initialValues, onSave
       setAvatarUrl(publicUrl);
       setForm((prev) => ({ ...prev, avatar_url: publicUrl }));
     } catch (error) {
-      alert("Error uploading avatar. Please try again.");
+      setError("Error uploading avatar. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSave = () => {
-    onSave({ ...form, avatar_url: avatarUrl });
-    onOpenChange(false);
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({ ...form, avatar_url: avatarUrl });
+      onOpenChange(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -108,24 +110,6 @@ export default function RuixenDialog({ open, onOpenChange, initialValues, onSave
     setAvatarUrl(initialValues.avatar_url || "https://github.com/shadcn.png");
     onOpenChange(false);
   };
-
-  const processFile = (file: File) => {
-    setFiles([file]);
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => setFilePreviews({ [file.name]: e.target?.result as string });
-      reader.readAsDataURL(file);
-    } else {
-      setFilePreviews({});
-    }
-  };
-
-  const handleDrop = React.useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) processFile(files[0]);
-  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -198,8 +182,9 @@ export default function RuixenDialog({ open, onOpenChange, initialValues, onSave
           </form>
         </div>
         <div className="flex justify-end w-full gap-2 border-t border-border px-6 py-4 bg-background rounded-b-2xl">
-          <Button variant="outline" onClick={handleCancel} disabled={uploading}>Cancel</Button>
-          <Button onClick={handleSave} disabled={uploading}>Save</Button>
+          {error && <div className="text-red-500 text-sm mr-auto">{error}</div>}
+          <Button variant="outline" onClick={handleCancel} disabled={uploading || saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={uploading || saving}>{saving ? "Saving..." : "Save"}</Button>
         </div>
       </DialogContent>
     </Dialog>

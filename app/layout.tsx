@@ -5,6 +5,7 @@ import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FirebaseAuthProvider } from "@/contexts/firebase-auth-context"
+import { MoodProvider } from "@/contexts/mood-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,7 +28,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <FirebaseAuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <MoodProvider>
+                {children}
+              </MoodProvider>
+            </AuthProvider>
           </ThemeProvider>
         </FirebaseAuthProvider>
       </body>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -32,15 +32,20 @@ import {
   Crown,
   Smile,
 } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { useMood } from "@/contexts/mood-context"
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
+  const [moodPopoverOpen, setMoodPopoverOpen] = useState(false)
+  const moodPopoverCloseTimeout = useRef<NodeJS.Timeout | null>(null)
 
   const { user } = useAuth()
   const router = useRouter()
+  const { moodEmoji, moodLabel } = useMood()
 
   const handleGetStarted = () => {
     if (user) {
@@ -99,23 +104,58 @@ export default function LandingPage() {
   const rightContent = (
     <div className="flex items-center space-x-4">
       <Button
-        variant="outline"
-        className="flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
-        onClick={() => router.push("/mood")}
-        title="Open Mood Tracker"
-      >
-        <Smile className="w-5 h-5" />
-        <span className="hidden md:inline">Mood Tracker</span>
-      </Button>
-      <div className="hidden md:block">
-        <ThemeToggle />
-      </div>
-      <Button
         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg"
         onClick={handleGetStarted}
       >
         {user ? "Dashboard" : "Get Started"}
       </Button>
+      <Popover open={moodPopoverOpen} onOpenChange={setMoodPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
+            title="Track your mood"
+            onMouseEnter={() => {
+              if (moodPopoverCloseTimeout.current) clearTimeout(moodPopoverCloseTimeout.current);
+              setMoodPopoverOpen(true);
+            }}
+            onMouseLeave={() => {
+              moodPopoverCloseTimeout.current = setTimeout(() => setMoodPopoverOpen(false), 200);
+            }}
+            onFocus={() => setMoodPopoverOpen(true)}
+            onBlur={() => setMoodPopoverOpen(false)}
+          >
+            {moodEmoji && <span className="text-xl">{moodEmoji}</span>}
+            <span className="font-medium">{moodLabel || "Mood"}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-64 text-center"
+          onMouseEnter={() => {
+            if (moodPopoverCloseTimeout.current) clearTimeout(moodPopoverCloseTimeout.current);
+            setMoodPopoverOpen(true);
+          }}
+          onMouseLeave={() => {
+            moodPopoverCloseTimeout.current = setTimeout(() => setMoodPopoverOpen(false), 200);
+          }}
+        >
+          <div className="mb-2 text-lg font-semibold">Track your mood</div>
+          <div className="mb-4 text-muted-foreground text-sm">See how you're feeling and get suggestions!</div>
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 text-xl font-bold">
+              {moodEmoji && <span>{moodEmoji}</span>}
+              <span>{moodLabel || "Mood"}</span>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => router.push("/mood")}
+          >
+            Open Mood Tracker
+          </Button>
+        </PopoverContent>
+      </Popover>
       <div className="md:hidden">
         <ThemeToggle />
       </div>
@@ -128,74 +168,65 @@ export default function LandingPage() {
       <NavBar items={navItems} logo={logo} rightContent={rightContent} className="backdrop-blur-xl" />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-4 overflow-hidden">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-pink-950/20" />
-
+      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-20 px-4 overflow-hidden bg-gradient-to-br from-purple-950 via-blue-950 to-pink-950">
+        {/* Background Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/10 via-blue-50/10 to-pink-50/10 dark:from-purple-950/30 dark:via-blue-950/30 dark:to-pink-950/30" />
         {/* Content Container */}
         <div className="relative z-10 container mx-auto max-w-6xl">
-          <div className="text-center space-y-8">
+          <div className="text-center space-y-10">
             {/* Badge */}
             <div className="flex justify-center">
-              <Badge className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200 dark:from-purple-900/50 dark:to-pink-900/50 dark:text-purple-300 dark:border-purple-700">
-                <Sparkles className="w-4 h-4 mr-2" />
+              <Badge className="px-5 py-2 bg-gradient-to-r from-purple-200 to-pink-200 text-purple-700 border-purple-300 dark:from-purple-900/60 dark:to-pink-900/60 dark:text-purple-200 dark:border-purple-700 shadow-md">
+                <Sparkles className="w-5 h-5 mr-2" />
                 AI-Powered Learning for Kids
               </Badge>
             </div>
-
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight">
-                <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
-                  Learn Like You Play
-                </span>
+              <h1 className="text-6xl sm:text-7xl md:text-8xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent drop-shadow-lg">
+                Learn Like You Play
               </h1>
             </div>
-
             {/* Subtitle */}
-            <div className="max-w-4xl mx-auto">
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting
-                adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
+            <div className="max-w-3xl mx-auto">
+              <p className="text-2xl md:text-3xl text-muted-foreground leading-relaxed font-medium">
+                Meet BrainBuddy – your smart AI companion that transforms boring study sessions into exciting adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
               </p>
             </div>
-
             {/* CTA Button */}
-            <div className="pt-4">
+            <div className="pt-6">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 text-xl font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-16 py-7 text-2xl font-bold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
                 onClick={handleGetStarted}
               >
-                <Zap className="w-6 h-6 mr-3" />
+                <Zap className="w-7 h-7 mr-4" />
                 {user ? "Go to Dashboard" : "Start Learning Now"}
               </Button>
             </div>
-
             {/* Trust Indicators */}
-            <div className="pt-8">
-              <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
+            <div className="pt-10">
+              <div className="flex flex-wrap justify-center items-center gap-10 text-lg text-muted-foreground">
                 <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-purple-500" />
+                  <Users className="w-5 h-5 text-purple-500" />
                   <span>10,000+ Happy Students</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-500" />
+                  <Star className="w-5 h-5 text-yellow-500" />
                   <span>4.9/5 Parent Rating</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-green-500" />
+                  <Shield className="w-5 h-5 text-green-500" />
                   <span>100% Safe & Secure</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-800"></div>
-        <div className="absolute top-40 right-10 w-20 h-20 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
-        <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
+        {/* Decorative Blobs */}
+        <div className="absolute top-24 left-10 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob dark:bg-purple-800"></div>
+        <div className="absolute top-56 right-10 w-32 h-32 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
+        <div className="absolute bottom-24 left-24 w-32 h-32 bg-pink-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
       </section>
 
       {/* Hero Visual */}

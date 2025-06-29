@@ -27,9 +27,10 @@ interface Quiz {
 interface QuizPlayerProps {
   quiz: Quiz
   onComplete: (score: number, totalQuestions: number, timeSpent: number) => void
+  onClose: () => void
 }
 
-export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
+export function QuizPlayerEnhanced({ quiz, onComplete, onClose }: QuizPlayerProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -178,10 +179,16 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
         <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg">
           <CardTitle className="flex items-center justify-between">
             <span>Review Mode - Question {reviewQuestion + 1}</span>
-            <Button variant="ghost" className="text-white" onClick={() => setShowReview(false)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Results
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" className="text-white" onClick={() => setShowReview(false)}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Results
+              </Button>
+              <Button variant="ghost" className="text-white" onClick={onClose}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Close
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-8">
@@ -320,6 +327,10 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
               <RotateCcw className="w-4 h-4 mr-2" />
               Retake Quiz
             </Button>
+            <Button variant="outline" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           <div className="text-left bg-gray-50 rounded-lg p-6">
@@ -361,6 +372,10 @@ export function QuizPlayerEnhanced({ quiz, onComplete }: QuizPlayerProps) {
             <span>
               Question {currentQuestion + 1} of {quiz.questions.length}
             </span>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Exit
+            </Button>
           </div>
         </div>
 

@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -8,7 +10,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Brain } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { createClient } from '@/lib/supabase-client';
-import * as pdfjsLib from 'pdfjs-dist';
 import { RadialProgress } from "@/components/ui/radial-progress";
 import { AIMoodRadar } from "@/components/ui/ai-mood-radar";
 import { LearningInsights } from "@/components/ui/learning-insights";
@@ -17,6 +18,14 @@ import { CommandPalette } from "@/components/ui/command-palette";
 import { ChatMessageList } from "@/components/ui/chat-message-list";
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui/chat-bubble";
 import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input";
+
+// Dynamic import for pdfjs-dist to avoid SSR issues
+let pdfjsLib: any = null;
+if (typeof window !== 'undefined') {
+  import('pdfjs-dist').then((module) => {
+    pdfjsLib = module;
+  });
+}
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
@@ -448,8 +457,10 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   }, []);
 
   React.useEffect(() => {
-    document.addEventListener("paste", handlePaste as any);
-    return () => document.removeEventListener("paste", handlePaste as any);
+    if (typeof window !== 'undefined') {
+      document.addEventListener("paste", handlePaste as any);
+      return () => document.removeEventListener("paste", handlePaste as any);
+    }
   }, [handlePaste]);
 
   const handleSubmit = async () => {
@@ -477,14 +488,18 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             if (file.type.startsWith('image/')) {
               extractedText = '[Image OCR not implemented in this demo]';
             } else if (file.type === 'application/pdf') {
-              const pdf = await pdfjsLib.getDocument(publicUrl).promise;
-              let text = '';
-              for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                text += content.items.map((item: any) => item.str).join(' ');
+              if (pdfjsLib) {
+                const pdf = await pdfjsLib.getDocument(publicUrl).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  const content = await page.getTextContent();
+                  text += content.items.map((item: any) => item.str).join(' ');
+                }
+                extractedText = text;
+              } else {
+                extractedText = '[PDF processing not available]';
               }
-              extractedText = text;
             } else if (file.type.startsWith('text/')) {
               extractedText = await file.text();
             } else if (file.type.startsWith('video/')) {

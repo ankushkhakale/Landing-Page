@@ -142,14 +142,13 @@ export function FileUpload({ onFileProcessed, difficulty, contentType }: FileUpl
           }
         } catch (error) {
           console.error("Text extraction error:", error)
-          extractedText =
-            "Sample text content extracted from your image. The AI service encountered an issue, but your image was processed successfully."
+          throw new Error("Failed to extract text from image")
         }
       } else if (fileData.file.type === "application/pdf") {
-        // For PDF, we'll use sample text for now
-        extractedText = `Sample PDF content from "${fileData.file.name}". This would contain the actual text from your PDF in a real implementation with PDF parsing capabilities.`
+        // PDF processing not yet implemented
+        throw new Error("PDF processing not yet implemented. Please use image or text files.")
       } else {
-        extractedText = `Sample content extracted from "${fileData.file.name}". This file has been processed successfully.`
+        throw new Error("Unsupported file type. Please use image or text files.")
       }
 
       // Generate content based on type
@@ -194,31 +193,7 @@ export function FileUpload({ onFileProcessed, difficulty, contentType }: FileUpl
         }
       } catch (aiError) {
         console.error("AI processing error:", aiError)
-        // Fallback to sample content
-        if (contentType === "quiz") {
-          result = {
-            title: `Sample Quiz: ${fileData.file.name}`,
-            questions: [
-              {
-                question: "What is the main topic of the uploaded content?",
-                options: ["Topic A", "Topic B", "Topic C", "Topic D"],
-                correctAnswer: 0,
-                explanation: "This is a sample question generated from your content.",
-              },
-              {
-                question: "Which concept is most important in this material?",
-                options: ["Concept 1", "Concept 2", "Concept 3", "Concept 4"],
-                correctAnswer: 1,
-                explanation: "This demonstrates understanding of key concepts.",
-              },
-            ],
-          }
-        } else {
-          result = {
-            summary:
-              "This is a sample summary of your uploaded content. The main points and key concepts would be highlighted here in an easy-to-understand format.",
-          }
-        }
+        throw new Error(`Failed to process content: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`)
       }
 
       // Save generated content
