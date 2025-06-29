@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,24 +12,25 @@ import { Badge } from "@/components/ui/badge"
 import { Camera, Save, X } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
 import { useAuth } from "@/contexts/auth-context"
+import RuixenDialog from "@/components/ui/ruixen-dialog"
 
 interface EditableProfileProps {
   onProfileUpdate?: () => void
 }
 
 export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
-  const { user, updateUser } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const [formData, setFormData] = useState({
     full_name: user?.user_metadata?.full_name || "",
     username: user?.user_metadata?.username || user?.user_metadata?.full_name || "",
-    age: user?.user_metadata?.age || "",
+    contact_no: user?.user_metadata?.contact_no || "",
     grade_level: user?.user_metadata?.grade_level || "",
+    date_of_birth: user?.user_metadata?.date_of_birth || "",
     avatar_url: user?.user_metadata?.avatar_url || "",
   })
 
@@ -70,81 +71,7 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
     } finally {
       setUploading(false)
     }
-  }
-
-  const handleSave = async () => {
-    if (!user) return
-
-    setLoading(true)
-    try {
-      // Update auth user metadata
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          full_name: formData.full_name,
-          username: formData.username,
-          age: formData.age,
-          grade_level: formData.grade_level,
-          avatar_url: formData.avatar_url,
-        },
-      })
-
-      if (authError) {
-        throw authError
-      }
-
-      // Update profiles table
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        id: user.id,
-        email: user.email!,
-        full_name: formData.full_name,
-        avatar_url: formData.avatar_url,
-        age: formData.age ? Number.parseInt(formData.age) : null,
-        grade_level: formData.grade_level,
-        updated_at: new Date().toISOString(),
-      })
-
-      if (profileError) {
-        throw profileError
-      }
-
-      // Update leaderboard
-      await supabase.from("leaderboards").upsert({
-        user_id: user.id,
-        username: formData.username,
-        avatar_url: formData.avatar_url,
-      })
-
-      // Create notification
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        title: "Profile Updated",
-        message: "Your profile has been successfully updated!",
-        type: "success",
-      })
-
-      setIsEditing(false)
-      onProfileUpdate?.()
-
-      // Refresh the user data
-      await updateUser()
-    } catch (error) {
-      console.error("Error updating profile:", error)
-      alert("Error updating profile. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setFormData({
-      full_name: user?.user_metadata?.full_name || "",
-      username: user?.user_metadata?.username || user?.user_metadata?.full_name || "",
-      age: user?.user_metadata?.age || "",
-      grade_level: user?.user_metadata?.grade_level || "",
-      avatar_url: user?.user_metadata?.avatar_url || "",
-    })
-    setIsEditing(false)
-  }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -177,19 +104,15 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
 
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
           </div>
-
           <h3 className="text-xl font-bold mb-2">{formData.full_name || formData.username || "Learner"}</h3>
           <p className="text-muted-foreground mb-4">{user?.email}</p>
-          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-            {user?.user_metadata?.user_type || "Student"}
-          </Badge>
         </CardContent>
       </Card>
-
       <Card className="lg:col-span-2 border-0 shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold">Profile Settings</CardTitle>
+
             {!isEditing ? (
               <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
             ) : (
@@ -220,62 +143,118 @@ export function EditableProfile({ onProfileUpdate }: EditableProfileProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="full_name">Full Name</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => handleInputChange("full_name", e.target.value)}
-                disabled={!isEditing}
-                className="mt-1"
-              />
+              <Input id="full_name" value={formData.full_name} disabled className="mt-1" />
             </div>
             <div>
               <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
-                disabled={!isEditing}
-                className="mt-1"
-              />
+              <Input id="username" value={formData.username} disabled className="mt-1" />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user?.email || ""} disabled className="mt-1 bg-muted" />
             </div>
             <div>
-              <Label htmlFor="age">Age</Label>
-              <Input
-                id="age"
-                type="number"
-                value={formData.age}
-                onChange={(e) => handleInputChange("age", e.target.value)}
-                disabled={!isEditing}
-                className="mt-1"
-              />
+              <Label htmlFor="contact_no">Contact No</Label>
+              <Input id="contact_no" value={formData.contact_no} disabled className="mt-1" />
             </div>
             <div>
               <Label htmlFor="grade_level">Grade Level</Label>
-              <Input
-                id="grade_level"
-                value={formData.grade_level}
-                onChange={(e) => handleInputChange("grade_level", e.target.value)}
-                disabled={!isEditing}
-                className="mt-1"
-                placeholder="e.g., 5th Grade, Middle School"
-              />
+              <Input id="grade_level" value={formData.grade_level} disabled className="mt-1" />
             </div>
             <div>
-              <Label htmlFor="user_type">User Type</Label>
-              <Input
-                id="user_type"
-                value={user?.user_metadata?.user_type || "Student"}
-                disabled
-                className="mt-1 bg-muted"
-              />
+              <Label htmlFor="date_of_birth">Date of Birth</Label>
+              <Input id="date_of_birth" value={formData.date_of_birth} disabled className="mt-1" />
             </div>
           </div>
         </CardContent>
       </Card>
+      <RuixenDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialValues={{
+          full_name: formData.full_name,
+          username: formData.username,
+          email: user?.email || "",
+          contact_no: formData.contact_no || "",
+          grade_level: formData.grade_level,
+          date_of_birth: formData.date_of_birth || "",
+          avatar_url: formData.avatar_url,
+        }}
+        userId={user?.id || "anon"}
+        onSave={async (values) => {
+          if (!user) return;
+          setLoading(true);
+          setError(null);
+          try {
+            // Only send allowed fields to auth.updateUser (metadata)
+            const { error: authError } = await supabase.auth.updateUser({
+              data: {
+                full_name: values.full_name,
+                username: values.username,
+                contact_no: values.contact_no,
+                grade_level: values.grade_level,
+                date_of_birth: values.date_of_birth,
+                avatar_url: values.avatar_url,
+              },
+            });
+            if (authError) {
+              setError(`Auth error: ${authError.message || authError}`);
+              return;
+            }
+            // Upsert to profiles table (ensure all columns exist in schema)
+            const { error: profileError } = await supabase.from("profiles").upsert({
+              id: user.id,
+              email: values.email,
+              full_name: values.full_name,
+              avatar_url: values.avatar_url || "",
+              contact_no: values.contact_no,
+              grade_level: values.grade_level,
+              date_of_birth: values.date_of_birth,
+              updated_at: new Date().toISOString(),
+            });
+            if (profileError) {
+              setError(`Profile error: ${profileError.message || profileError}`);
+              return;
+            }
+            // Upsert to leaderboards table
+            const { error: leaderboardError } = await supabase.from("leaderboards").upsert({
+              user_id: user.id,
+              username: values.username,
+              avatar_url: values.avatar_url || "",
+            });
+            if (leaderboardError) {
+              setError(`Leaderboard error: ${leaderboardError.message || leaderboardError}`);
+              return;
+            }
+            // Insert notification
+            const { error: notificationError } = await supabase.from("notifications").insert({
+              user_id: user.id,
+              title: "Profile Updated",
+              message: "Your profile has been successfully updated!",
+              type: "success",
+            });
+            if (notificationError) {
+              setError(`Notification error: ${notificationError.message || notificationError}`);
+              return;
+            }
+            setFormData({
+              full_name: values.full_name,
+              username: values.username,
+              contact_no: values.contact_no,
+              grade_level: values.grade_level,
+              date_of_birth: values.date_of_birth,
+              avatar_url: values.avatar_url || "",
+            });
+            await refreshUser();
+            onProfileUpdate?.();
+          } catch (error) {
+            setError(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
+      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
     </div>
   )
 }

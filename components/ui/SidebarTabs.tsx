@@ -1,38 +1,69 @@
-import React from "react";
+"use client"
 
-interface SidebarTabItem {
-  key: string;
-  label: string;
-  icon: React.ElementType;
+import React from "react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+interface TabItem {
+  key: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
 }
 
 interface SidebarTabsProps {
-  items: SidebarTabItem[];
-  activeTab: string;
-  onTabChange: (key: string) => void;
+  items: TabItem[]
+  activeTab: string
+  onTabChange: (key: string) => void
+  className?: string
 }
 
-export function SidebarTabs({ items, activeTab, onTabChange }: SidebarTabsProps) {
+export function SidebarTabs({ items, activeTab, onTabChange, className }: SidebarTabsProps) {
   return (
-    <aside className="w-56 min-h-screen flex flex-col items-center py-8 px-2 bg-white/80 dark:bg-[#20223a]/90 border-r border-border shadow-md rounded-tr-2xl rounded-br-2xl relative">
-      <div className="w-full flex flex-col gap-2">
-        {items.map((item) => (
-          <button
-            key={item.key}
-            className={`flex items-center gap-3 w-full px-5 py-3 rounded-xl font-medium text-base transition-colors duration-150
-              ${activeTab === item.key
-                ? "bg-purple-100 dark:bg-[#2d2250] text-purple-700 dark:text-purple-200 shadow"
-                : "bg-transparent text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-[#23284a]"}
-            `}
-            onClick={() => onTabChange(item.key)}
-          >
-            <item.icon className="w-5 h-5 opacity-80" />
-            <span>{item.label}</span>
-          </button>
-        ))}
+    <TooltipProvider delayDuration={0}>
+      <div className={cn("flex h-full w-64 flex-col bg-sidebar border-r border-border", className)}>
+        <ScrollArea className="flex-1 px-3 py-4">
+          <div className="space-y-2">
+            {items.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.key
+              
+              return (
+                <Tooltip key={item.key}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={isActive ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full justify-start gap-3 h-12 px-3",
+                        isActive && "bg-secondary text-secondary-foreground shadow-sm"
+                      )}
+                      onClick={() => onTabChange(item.key)}
+                    >
+                      <Icon className={cn(
+                        "h-5 w-5",
+                        isActive ? "text-secondary-foreground" : "text-muted-foreground"
+                      )} />
+                      <span className="font-medium">{item.label}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="hidden lg:block">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </ScrollArea>
+        
+        <div className="p-3">
+          <Separator className="mb-3" />
+          <div className="text-xs text-muted-foreground text-center">
+            BrainBuddy v1.0
+          </div>
+        </div>
       </div>
-      {/* Subtle vertical divider on the right edge */}
-      <div className="absolute right-0 top-0 h-full w-px bg-border" />
-    </aside>
-  );
+    </TooltipProvider>
+  )
 } 

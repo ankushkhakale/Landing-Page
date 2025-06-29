@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { FirebaseAuthProvider } from "@/contexts/firebase-auth-context"
+import { MoodProvider } from "@/contexts/mood-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -28,9 +30,15 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthProvider>{children}</AuthProvider>
-        </ThemeProvider>
+        <FirebaseAuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <AuthProvider>
+              <MoodProvider>
+                {children}
+              </MoodProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </FirebaseAuthProvider>
       </body>
     </html>
   )

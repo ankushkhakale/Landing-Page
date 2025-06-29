@@ -30,20 +30,7 @@ export async function POST(request: NextRequest) {
       const response = await result.response
       extractedText = response.text()
     } else {
-      extractedText = `
-Sample Text Extracted from Image
-
-This is sample text that would normally be extracted from your image using AI.
-In a real scenario, this would contain the actual text content from your uploaded image.
-
-Key points that might be in your image:
-• Important concepts and definitions
-• Study notes and explanations  
-• Formulas or equations
-• Lists and bullet points
-
-To get actual text extraction from images, please add your Gemini API key to the environment variables.
-      `
+      return NextResponse.json({ error: "Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables." }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, text: extractedText })

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,19 +30,24 @@ import {
   Home,
   Info,
   Crown,
+  Smile,
 } from "lucide-react"
-
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { useMood } from "@/contexts/mood-context"
 import ShinyText from "@/components/ShinyText"
 import "@/components/ShinyText.css"
 import { AnimatedCompetitionButton } from "@/components/ui/AnimatedCompetitionButton"
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
+  const [moodPopoverOpen, setMoodPopoverOpen] = useState(false)
+  const moodPopoverCloseTimeout = useRef<NodeJS.Timeout | null>(null)
 
   const { user } = useAuth()
   const router = useRouter()
+  const { moodEmoji, moodLabel } = useMood()
 
   const handleGetStarted = () => {
     if (user) {
@@ -74,7 +79,7 @@ export default function LandingPage() {
       onClick: () => scrollToSection("features"),
     },
     {
-      name: "How It Works",
+      name: "Working",
       url: "#how-it-works",
       icon: Info,
       onClick: () => scrollToSection("how-it-works"),
@@ -98,15 +103,59 @@ export default function LandingPage() {
 
   const rightContent = (
     <div className="flex items-center space-x-4">
-      <div className="hidden md:block">
-        <ThemeToggle />
-      </div>
       <Button
         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg"
         onClick={handleGetStarted}
       >
         {user ? "Dashboard" : "Get Started"}
       </Button>
+      <Popover open={moodPopoverOpen} onOpenChange={setMoodPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
+            title="Track your mood"
+            onMouseEnter={() => {
+              if (moodPopoverCloseTimeout.current) clearTimeout(moodPopoverCloseTimeout.current);
+              setMoodPopoverOpen(true);
+            }}
+            onMouseLeave={() => {
+              moodPopoverCloseTimeout.current = setTimeout(() => setMoodPopoverOpen(false), 200);
+            }}
+            onFocus={() => setMoodPopoverOpen(true)}
+            onBlur={() => setMoodPopoverOpen(false)}
+          >
+            {moodEmoji && <span className="text-xl">{moodEmoji}</span>}
+            <span className="font-medium">{moodLabel || "Mood"}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-64 text-center"
+          onMouseEnter={() => {
+            if (moodPopoverCloseTimeout.current) clearTimeout(moodPopoverCloseTimeout.current);
+            setMoodPopoverOpen(true);
+          }}
+          onMouseLeave={() => {
+            moodPopoverCloseTimeout.current = setTimeout(() => setMoodPopoverOpen(false), 200);
+          }}
+        >
+          <div className="mb-2 text-lg font-semibold">Track your mood</div>
+          <div className="mb-4 text-muted-foreground text-sm">See how you're feeling and get suggestions!</div>
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 text-xl font-bold">
+              {moodEmoji && <span>{moodEmoji}</span>}
+              <span>{moodLabel || "Mood"}</span>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => router.push("/mood")}
+          >
+            Open Mood Tracker
+          </Button>
+        </PopoverContent>
+      </Popover>
       <div className="md:hidden">
         <ThemeToggle />
       </div>
@@ -141,7 +190,6 @@ export default function LandingPage() {
                 AI-Powered Learning for Kids
               </Badge>
             </div>
-
             {/* Main Heading */}
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight text-left">
@@ -150,22 +198,20 @@ export default function LandingPage() {
                 </span>
               </h1>
             </div>
-
             {/* Subtitle */}
             <div className="max-w-4xl">
               <p className="text-lg sm:text-xl md:text-2xl font-normal text-black leading-relaxed text-left drop-shadow-[0_2px_6px_rgba(255,255,255,0.8)]">
                 Meet BrainBuddy - your smart AI companion that transforms boring study sessions into exciting adventures! Perfect for students under 15 who want to make learning feel like their favorite game.
               </p>
             </div>
-
             {/* CTA Button */}
-            <div className="pt-4 flex justify-start">
+            <div className="pt-4 flex justify-start">1
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 text-xl font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-16 py-7 text-2xl font-bold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
                 onClick={handleGetStarted}
               >
-                <Zap className="w-6 h-6 mr-3" />
+                <Zap className="w-7 h-7 mr-4" />
                 {user ? "Go to Dashboard" : "Start Learning Now"}
               </Button>
             </div>
@@ -173,11 +219,10 @@ export default function LandingPage() {
             {/* Trust indicators removed as requested */}
           </div>
         </div>
-
-        {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-800"></div>
-        <div className="absolute top-40 right-10 w-20 h-20 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
-        <div className="absolute bottom-20 left-20 w-20 h-20 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
+        {/* Decorative Blobs */}
+        <div className="absolute top-24 left-10 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob dark:bg-purple-800"></div>
+        <div className="absolute top-56 right-10 w-32 h-32 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000 dark:bg-yellow-800"></div>
+        <div className="absolute bottom-24 left-24 w-32 h-32 bg-pink-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-4000 dark:bg-pink-800"></div>
       </section>
 
       {/* Features Section */}

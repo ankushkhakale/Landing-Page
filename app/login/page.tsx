@@ -1,7 +1,9 @@
+import AnimatedSignIn from "@/components/ui/animated-sign-in";
+export default function LoginPage() {
+  return <AnimatedSignIn />;
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -149,4 +151,5 @@ export default function LoginPage() {
       </div>
     </div>
   )
+
 }

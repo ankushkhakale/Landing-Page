@@ -80,7 +80,7 @@ npm run dev
 
 4. **AI features not working**:
    - Verify your Gemini API key is correct
-   - The app will work with fallback content if no API key is provided
+   - AI features require a valid Gemini API key to function
 
 ### Getting a Gemini API Key:
 

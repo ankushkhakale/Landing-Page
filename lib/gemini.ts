@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 // Check if API key is available
 const apiKey = process.env.GEMINI_API_KEY
 if (!apiKey) {
-  console.warn("GEMINI_API_KEY not found. AI features will use fallback responses.")
+  console.warn("GEMINI_API_KEY not found. AI features will require a valid API key to function.")
 }
 
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
@@ -11,16 +11,7 @@ export const geminiModel = genAI ? genAI.getGenerativeModel({ model: "gemini-1.5
 
 export async function generateQuizFromText(text: string, difficulty = "medium", questionCount = 15) {
   if (!geminiModel) {
-    // Fallback quiz for when API key is not available
-    return {
-      title: `Sample ${difficulty} Quiz`,
-      questions: Array.from({ length: Math.min(questionCount, 5) }, (_, i) => ({
-        question: `Sample question ${i + 1} about the content (${difficulty} level)`,
-        options: ["This is option A", "This is option B", "This is option C", "This is option D"],
-        correctAnswer: i % 4,
-        explanation: `This is a sample explanation for question ${i + 1}.`,
-      })),
-    }
+    throw new Error("Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.");
   }
 
   const prompt = `
@@ -57,24 +48,13 @@ export async function generateQuizFromText(text: string, difficulty = "medium", 
     throw new Error("Invalid response format")
   } catch (error) {
     console.error("Error generating quiz:", error)
-    // Return fallback quiz
-    return {
-      title: `${difficulty} Quiz`,
-      questions: [
-        {
-          question: "What is the main topic discussed in the content?",
-          options: ["Topic A", "Topic B", "Topic C", "Topic D"],
-          correctAnswer: 0,
-          explanation: "This is based on the main theme of your uploaded content.",
-        },
-      ],
-    }
+    throw new Error("Failed to generate quiz from content")
   }
 }
 
 export async function generateSummary(text: string) {
   if (!geminiModel) {
-    return "This is a sample summary of your content. To get AI-generated summaries, please add your Gemini API key to the environment variables."
+    throw new Error("Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.");
   }
 
   const prompt = `
@@ -91,13 +71,13 @@ export async function generateSummary(text: string) {
     return response.text()
   } catch (error) {
     console.error("Error generating summary:", error)
-    return "This is a sample summary of your content. The AI service encountered an error, but your content was processed successfully."
+    throw new Error("Failed to generate summary from content")
   }
 }
 
 export async function chatWithAI(message: string, context?: string) {
   if (!geminiModel) {
-    return "Hi there! I'm BrainBuddy, but I need an API key to chat with you properly. For now, I can tell you that learning is awesome and you're doing great! 🎓✨"
+    throw new Error("Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.");
   }
 
   const prompt = `
@@ -115,13 +95,13 @@ export async function chatWithAI(message: string, context?: string) {
     return response.text()
   } catch (error) {
     console.error("Error in AI chat:", error)
-    return "I'm having trouble connecting right now, but I'm here to help! Try asking me something about your studies and I'll do my best to help! 😊"
+    throw new Error("Failed to generate AI response")
   }
 }
 
 export async function extractTextFromImage(imageData: string) {
   if (!geminiModel) {
-    return "Sample text extracted from image. To get actual text extraction, please add your Gemini API key."
+    throw new Error("Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.");
   }
 
   const prompt = "Extract all text from this image and format it clearly:"
@@ -140,6 +120,6 @@ export async function extractTextFromImage(imageData: string) {
     return response.text()
   } catch (error) {
     console.error("Error extracting text from image:", error)
-    return "Sample text content extracted from your image. The AI service encountered an error, but your image was processed."
+    throw new Error("Failed to extract text from image")
   }
 }

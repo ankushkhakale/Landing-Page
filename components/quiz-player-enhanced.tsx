@@ -186,6 +186,7 @@ export function QuizPlayerEnhanced({ quiz, onComplete, onClose }: QuizPlayerProp
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Results
               </Button>
+
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 sm:p-8 text-center">
@@ -316,6 +317,10 @@ export function QuizPlayerEnhanced({ quiz, onComplete, onClose }: QuizPlayerProp
             <Button variant="outline" className="w-full sm:w-auto" onClick={onClose}>
               Back to Dashboard
             </Button>
+            <Button variant="outline" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
         </div>
       </Card>
@@ -339,6 +344,10 @@ export function QuizPlayerEnhanced({ quiz, onComplete, onClose }: QuizPlayerProp
             <span>
               Question {currentQuestion + 1} of {quiz.questions.length}
             </span>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Exit
+            </Button>
           </div>
         </div>
 
