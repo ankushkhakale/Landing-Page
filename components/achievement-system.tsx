@@ -236,7 +236,7 @@ export function AchievementSystem() {
       )}
 
       {/* Achievement Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {ACHIEVEMENTS.map((achievement) => {
           const isEarned = earnedAchievements.includes(achievement.id)
           const canEarn = userProgress && achievement.condition(userProgress)
@@ -244,33 +244,34 @@ export function AchievementSystem() {
           return (
             <Card
               key={achievement.id}
-              className={`border-0 shadow-xl transition-all ${
-                isEarned
-                  ? `bg-gradient-to-br ${getCategoryColor(achievement.category)} text-white`
+              className={`transition-all rounded-2xl shadow-xl border-0 h-full flex flex-col justify-between
+                ${isEarned
+                  ? `bg-gradient-to-br ${getCategoryColor(achievement.category)} text-white ring-2 ring-white/40 hover:scale-105 hover:shadow-2xl`
                   : canEarn
-                    ? "bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300"
-                    : "bg-gray-100"
-              }`}
+                    ? "bg-gradient-to-br from-yellow-50 to-orange-100 border-2 border-yellow-300 hover:scale-105 hover:shadow-lg"
+                    : "bg-white/80 dark:bg-gray-900/80 text-gray-400"}
+              `}
             >
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 sm:p-5 flex flex-col items-center text-center h-full">
                 <div
-                  className={`w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4 ${
-                    isEarned ? "bg-white/20" : canEarn ? "bg-yellow-200" : "bg-gray-200"
-                  }`}
+                  className={`w-16 h-16 rounded-3xl flex items-center justify-center mb-3 shadow-lg
+                    ${isEarned ? "bg-white/30 animate-pulse" : canEarn ? "bg-yellow-200" : "bg-gray-200 dark:bg-gray-800"}
+                  `}
+                  style={isEarned ? { boxShadow: '0 0 16px 4px rgba(255,255,255,0.25)' } : {}}
                 >
-                  <div className={isEarned ? "text-white" : canEarn ? "text-yellow-600" : "text-gray-400"}>
+                  <div className={isEarned ? "text-white drop-shadow-lg" : canEarn ? "text-yellow-600" : "text-gray-400"}>
                     {getIcon(achievement.icon)}
                   </div>
                 </div>
 
                 <h3
-                  className={`text-xl font-bold mb-2 ${isEarned ? "text-white" : canEarn ? "text-yellow-800" : "text-gray-600"}`}
+                  className={`text-lg font-extrabold mb-1 tracking-tight ${isEarned ? "text-white" : canEarn ? "text-yellow-800" : "text-gray-500 dark:text-gray-400"}`}
                 >
                   {achievement.name}
                 </h3>
 
                 <p
-                  className={`text-sm mb-4 ${isEarned ? "text-white/80" : canEarn ? "text-yellow-700" : "text-gray-500"}`}
+                  className={`text-xs mb-3 ${isEarned ? "text-white/80" : canEarn ? "text-yellow-700" : "text-gray-400 dark:text-gray-500"}`}
                 >
                   {achievement.description}
                 </p>
@@ -278,16 +279,16 @@ export function AchievementSystem() {
                 <Badge
                   className={
                     isEarned
-                      ? "bg-white/20 text-white border-white/30"
+                      ? "bg-white/30 text-white border-white/30 px-3 py-1 text-xs font-semibold"
                       : canEarn
-                        ? "bg-yellow-200 text-yellow-800 border-yellow-300"
-                        : "bg-gray-200 text-gray-600"
+                        ? "bg-yellow-200 text-yellow-800 border-yellow-300 px-3 py-1 text-xs font-semibold"
+                        : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-3 py-1 text-xs font-semibold"
                   }
                 >
                   {isEarned ? "Earned" : canEarn ? "Ready to Earn!" : "Locked"}
                 </Badge>
 
-                {isEarned && <p className="text-xs text-white/60 mt-2">+{achievement.xpReward} XP</p>}
+                {isEarned && <p className="text-xs text-white/70 mt-2 font-bold">+{achievement.xpReward} XP</p>}
               </CardContent>
             </Card>
           )

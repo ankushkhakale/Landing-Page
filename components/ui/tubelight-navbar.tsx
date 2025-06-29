@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMood } from "@/contexts/mood-context"
+import { Leaderboard } from "@/components/leaderboard"
 
 interface NavItem {
   name: string
@@ -50,7 +51,7 @@ export function NavBar({ items, className, logo, rightContent }: NavBarProps) {
         {logo && <div className="flex items-center">{logo}</div>}
 
         {/* Navigation Items */}
-        <div className="flex items-center gap-3 bg-background/80 border border-border/50 backdrop-blur-xl py-2 px-2 rounded-full shadow-lg">
+        <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-border py-2 px-2 rounded-full shadow-lg">
           {items.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.name

@@ -1,0 +1,24 @@
+.shiny-text {
+  display: inline-block;
+  position: relative;
+  font-weight: bold;
+  background: linear-gradient(90deg, #a21caf, #6366f1, #ec4899, #fff 40%, #ec4899, #6366f1, #a21caf);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shiny-text-move 2s linear infinite;
+}
+
+@keyframes shiny-text-move {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none;
+} 
