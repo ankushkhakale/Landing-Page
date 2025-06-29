@@ -39,11 +39,12 @@ export default function GradientText({
         className
       )}
       style={{
-        background: `linear-gradient(45deg, ${currentColor}, ${nextColor})`,
+        backgroundImage: `linear-gradient(45deg, ${currentColor}, ${nextColor})`,
         backgroundSize: "200% 200%",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center center",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
         animation: `gradientShift ${animationSpeed}s ease infinite`,
       }}
     >

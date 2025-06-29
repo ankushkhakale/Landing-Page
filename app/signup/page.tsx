@@ -117,7 +117,7 @@ export default function SignupPage() {
 
         <Card className="border-purple-200 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-800">Create Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-800 dark:text-white">Create Account</CardTitle>
             <CardDescription>Join thousands of students already learning with BrainBuddy</CardDescription>
           </CardHeader>
           <CardContent>
@@ -162,8 +162,6 @@ export default function SignupPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="student">Student (Under 15)</SelectItem>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="parent">Parent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
